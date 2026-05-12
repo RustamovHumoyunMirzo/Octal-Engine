@@ -5,3 +5,5 @@ In active development. Not ready for use yet. If you interested in helping out, 
 **Building instructions:** [See here](docs/internal/build.md)
 
 **More information about internals:** [See here](docs/internal/info.md)
+
+**What to do right now? (for those who just joined):** [See here](WHAT_TO_DO.md)
