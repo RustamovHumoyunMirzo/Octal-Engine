@@ -20,9 +20,12 @@ All public engine classes currently live in the `OctalEngine` namespace.
 
 | Header | Type | Purpose |
 | --- | --- | --- |
-| `Engine.h` | `OctalEngine::Engine` | Owns the main engine run loop. |
+| `Engine.h` | `OctalEngine::Engine`, `OctalEngine::EngineConfig` | Owns the main engine run loop and runtime mode config. |
+| `Platform.h` | `OctalEngine::Platform` | Optional event-pumping interface for integrations. |
 | `EngineTime.h` | `OctalEngine::Time` | Produces the frame delta time used by the loop. |
 | `Loop.h` | `OctalEngine::GameLoop` | Provides update and render steps called each frame. |
+| `PlatformSystem.h` | `OctalEngine::PlatformSystem` | Platform and window manager. |
+| `Window.h` | `OctalEngine::Window` | Runtime window control API. |
 
 ## Minimal Example
 
@@ -31,13 +34,47 @@ All public engine classes currently live in the `OctalEngine` namespace.
 
 int main()
 {
-    OctalEngine::Engine engine;
+    OctalEngine::EngineConfig config;
+    config.mode = OctalEngine::HeadlessMode{};
+
+    OctalEngine::Engine engine(config);
+
     engine.run();
 }
 ```
 
 `Engine::run()` enters the engine loop and continues until `Engine::stop()` is
 called on that same engine instance.
+
+## Windowed Example
+
+The engine can run without a window. To use platform windows, create a
+`PlatformSystem`, create one or more windows, and pass the platform and runtime
+mode into the engine constructor:
+
+```cpp
+#include "Engine.h"
+#include "PlatformSystem.h"
+
+int main()
+{
+    OctalEngine::PlatformSystem platform;
+
+    OctalEngine::WindowDescriptor windowDescriptor;
+    windowDescriptor.title = "My Game";
+    windowDescriptor.width = 1280;
+    windowDescriptor.height = 720;
+
+    auto window = platform.createWindow(windowDescriptor);
+
+    OctalEngine::EngineConfig config;
+    config.mode = OctalEngine::WindowedMode{window.get()};
+
+    OctalEngine::Engine engine(platform, config);
+
+    engine.run();
+}
+```
 
 ## Current Status
 

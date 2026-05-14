@@ -46,7 +46,11 @@ The current sandbox creates an `OctalEngine::Engine` and calls `run()`:
 
 int main()
 {
-    OctalEngine::Engine engine;
+    OctalEngine::EngineConfig config;
+    config.mode = OctalEngine::HeadlessMode{};
+
+    OctalEngine::Engine engine(config);
+
     engine.run();
 }
 ```
@@ -75,7 +79,46 @@ add_executable(MyGame src/main.cpp)
 target_link_libraries(MyGame PRIVATE OctalEngine)
 ```
 
-## SDL2 Note
+## Platform Layer
 
-The repository contains helper scripts and third-party files for SDL2, but the
-current public API documented here does not require calling SDL2 directly.
+The engine core does not require a windowing backend. Windowing support is built
+as the separate `OctalEnginePlatform` target when `OCTAL_BUILD_PLATFORM` is on:
+
+```powershell
+cmake -S . -B build -DOCTAL_BUILD_PLATFORM=ON
+```
+
+This option is enabled by default.
+
+To build only the headless core engine target:
+
+```powershell
+cmake -S . -B build -DOCTAL_BUILD_PLATFORM=OFF
+```
+
+Windowed applications should link both targets:
+
+```cmake
+target_link_libraries(MyGame PRIVATE OctalEngine OctalEnginePlatform)
+```
+
+Then create a platform, create a window, and pass the runtime mode into
+`Engine`:
+
+```cpp
+#include "Engine.h"
+#include "PlatformSystem.h"
+
+int main()
+{
+    OctalEngine::PlatformSystem platform;
+    auto window = platform.createWindow();
+
+    OctalEngine::EngineConfig config;
+    config.mode = OctalEngine::WindowedMode{window.get()};
+
+    OctalEngine::Engine engine(platform, config);
+
+    engine.run();
+}
+```

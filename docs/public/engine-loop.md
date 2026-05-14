@@ -8,6 +8,8 @@ OctalEngine::GameLoop loop;
 
 while (running)
 {
+    pumpPlatformIfAvailable();
+
     float dt = time.step();
 
     loop.update(dt);
@@ -16,6 +18,32 @@ while (running)
 ```
 
 This is the same flow used internally by `OctalEngine::Engine::run()`.
+
+## Runtime Modes
+
+`EngineConfig` stores the runtime mode as a variant:
+
+```cpp
+OctalEngine::EngineConfig config{
+};
+config.mode = OctalEngine::HeadlessMode{};
+```
+
+Use `HeadlessMode` when the engine should update without a window. Use
+`WindowedMode` when a platform window exists:
+
+```cpp
+OctalEngine::EngineConfig config;
+config.mode = OctalEngine::WindowedMode{window.get()};
+
+OctalEngine::Engine engine(platform, config);
+```
+
+The engine pumps platform events internally when constructed with a platform. If
+the platform requests quit, the engine stops before the next update.
+
+Headless mode does not use presentation or window state. The update loop still
+runs normally.
 
 ## Frame Delta Time
 
@@ -32,8 +60,9 @@ Each frame calls:
 1. `GameLoop::update(dt)`
 2. `GameLoop::render()`
 
-Use `update(dt)` for simulation and gameplay state changes. Use `render()` for
-drawing or presenting the current frame.
+Use `update(dt)` for simulation and gameplay state changes. `render()` is still
+called by the current loop, but no rendering abstraction, framebuffer logic, or
+presentation layer exists yet.
 
 ## Stopping The Loop
 

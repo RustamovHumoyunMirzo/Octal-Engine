@@ -12,6 +12,5 @@ namespace OctalEngine
 
     void GameLoop::render()
     {
-        std::cout << "OctalEngine frame\n";
     }
 }

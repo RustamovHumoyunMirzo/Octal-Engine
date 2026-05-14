@@ -1,9 +1,13 @@
-// This is a test file for the Octal Engine. It creates an instance of the Engine class and runs it.
+// This is a headless sandbox for the Octal Engine.
 
 #include "Engine.h"
 
 int main()
 {
-    OctalEngine::Engine engine;
+    OctalEngine::EngineConfig config;
+    config.mode = OctalEngine::HeadlessMode{};
+
+    OctalEngine::Engine engine(config);
+
     engine.run();
 }
