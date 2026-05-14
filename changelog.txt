@@ -1,0 +1,65 @@
+Octal Engine Changelog
+
+Current version: 0.1.0-alpha
+First version: 0.0.1
+
+0.1.0-alpha
+
+- Added public user documentation under docs/public.
+- Made docs/public/README.md the main public documentation navigation page.
+- Documented getting started, engine loop concepts, and public API references.
+- Added API docs for Engine, EngineConfig, Platform, PlatformSystem, Window,
+  Time, and GameLoop.
+- Added a platform abstraction layer so the engine can integrate platform events
+  without requiring windowing.
+- Added Platform as the core event-pumping interface.
+- Added PlatformSystem as the public platform/window manager.
+- Added Window, WindowDescriptor, WindowSize, WindowPosition, and WindowId APIs.
+- Added window creation, lookup, close, close-all, and window counting support.
+- Added runtime window controls for title, size, position, centering,
+  visibility, maximize, minimize, restore, fullscreen, resizable state, and
+  native handle access.
+- Integrated platform event pumping into the engine main loop.
+- Kept headless engine usage supported: engine.run() still works without a
+  window or platform target.
+- Kept the engine core independent from the platform/windowing target.
+- Added an optional OctalEnginePlatform CMake target.
+- Added OCTAL_BUILD_PLATFORM CMake option to build with or without the platform
+  layer.
+- Added CMake integration for the internal SDL2 backend while keeping SDL2 out
+  of public headers, user samples, and public documentation.
+- Made SDL2 a private implementation detail of OctalEnginePlatform.
+- Added SDL2 DLL copy step for the windowed sandbox on Windows.
+- Refactored bootstrap API from setPlatform() to constructor injection.
+- Removed Engine::setPlatform().
+- Added EngineConfig using std::variant for runtime mode configuration.
+- Added HeadlessMode for simulations, tests, tools, and server-style workloads
+  that do not need a window.
+- Added WindowedMode with Window* window for windowed runtime setup.
+- Added Engine constructors:
+  - Engine()
+  - Engine(const EngineConfig&)
+  - Engine(Platform&, const EngineConfig&)
+- Avoided public/user-code preprocessor branching for platform support.
+- Split sandbox samples into:
+  - test/main.cpp for headless bootstrap
+  - test/windowed.cpp for windowed bootstrap
+- Added WindowedSandbox executable when the platform layer is enabled.
+- Updated samples to avoid designated initializers so editor IntelliSense stays
+  clean.
+- Verified platform-enabled and headless CMake builds.
+
+0.0.1
+
+- Initial Octal Engine project version.
+- Added basic C++20 CMake project structure.
+- Added OctalEngine static library target.
+- Added Sandbox executable target.
+- Added initial engine core classes:
+  - Engine
+  - Time
+  - GameLoop
+- Added a simple Engine::run() loop that steps time, updates, and renders.
+- Added Engine::stop().
+- Added fixed timestep placeholder returning 1.0f / 60.0f.
+- Added initial repository documentation and internal project notes.
