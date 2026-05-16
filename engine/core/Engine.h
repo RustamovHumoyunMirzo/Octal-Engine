@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Events.h"
+
 #include <variant>
 
 namespace OctalEngine
@@ -33,6 +35,7 @@ namespace OctalEngine
 
         void run();
         void stop();
+        EventWorld& events();
 
     private:
         bool isWindowed() const;
@@ -41,6 +44,7 @@ namespace OctalEngine
 
         bool running = true;
         EngineConfig config{};
+        EventWorld eventWorld;
         Platform* platform = nullptr;
     };
 }

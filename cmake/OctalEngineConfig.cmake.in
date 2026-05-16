@@ -1,0 +1,15 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+set(OctalEngine_VERSION "@OCTALENGINE_VERSION@")
+set(OctalEngine_BUILD_PLATFORM @OCTAL_BUILD_PLATFORM@)
+set(OctalEngine_RUNTIME_DLL "@OCTALENGINE_RUNTIME_DLL@")
+
+if(OctalEngine_BUILD_PLATFORM AND NOT TARGET SDL2::SDL2)
+    set(SDL2_DIR "@OCTALENGINE_SDL2_DIR@")
+    find_dependency(SDL2 CONFIG)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/OctalEngineTargets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/OctalEngine.cmake")

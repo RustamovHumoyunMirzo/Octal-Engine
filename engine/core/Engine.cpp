@@ -38,14 +38,21 @@ namespace OctalEngine
 
             const float dt = time.step();
 
+            eventWorld.engine().emit<Update>({dt});
             loop.update(dt);
             loop.render();
+            eventWorld.flush();
         }
     }
 
     void Engine::stop()
     {
         running = false;
+    }
+
+    EventWorld& Engine::events()
+    {
+        return eventWorld;
     }
 
     bool Engine::isWindowed() const

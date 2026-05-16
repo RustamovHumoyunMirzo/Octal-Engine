@@ -12,8 +12,10 @@ while (running)
 
     float dt = time.step();
 
+    events.engine().emit<Update>({dt});
     loop.update(dt);
     loop.render();
+    events.flush();
 }
 ```
 
@@ -63,6 +65,20 @@ Each frame calls:
 Use `update(dt)` for simulation and gameplay state changes. `render()` is still
 called by the current loop, but no rendering abstraction, framebuffer logic, or
 presentation layer exists yet.
+
+## Engine Update Event
+
+The engine emits `Update{dt}` on the engine event bus each frame:
+
+```cpp
+OctalEngine::Subscription sub = engine.events().engine().subscribe<OctalEngine::Update>(
+    [](const OctalEngine::Update& e) {
+        printf("%f", e.dt);
+    });
+```
+
+Deferred events queued during a frame are flushed after the current placeholder
+render step.
 
 ## Stopping The Loop
 

@@ -91,8 +91,10 @@ Current behavior:
 - Creates a local `OctalEngine::GameLoop`.
 - Repeats while the engine is running.
 - Calls `Time::step()` once per frame.
+- Emits `Update{dt}` on the engine event bus.
 - Calls `GameLoop::update(dt)` with the returned delta time.
 - Calls `GameLoop::render()` after update.
+- Flushes deferred events after render.
 
 `run()` blocks until the engine is stopped.
 
@@ -133,3 +135,19 @@ engine.stop();
 
 Calling `stop()` before `run()` means a later `run()` call will immediately exit
 with the current implementation.
+
+## `events`
+
+```cpp
+EventWorld& events();
+```
+
+Returns the engine's event world. Use it to subscribe to engine events before
+calling `run()`:
+
+```cpp
+OctalEngine::Subscription sub = engine.events().engine().subscribe<OctalEngine::Update>(
+    [](const OctalEngine::Update& e) {
+        printf("%f", e.dt);
+    });
+```

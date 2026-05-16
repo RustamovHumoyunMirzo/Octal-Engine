@@ -48,6 +48,22 @@ First version: 0.0.1
 - Updated samples to avoid designated initializers so editor IntelliSense stays
   clean.
 - Verified platform-enabled and headless CMake builds.
+- Added Octal Engine CMake package config support for find_package.
+- Added OctalEngine_AddGame alias for the helper.
+- Hid engine target linking, C++ standard setup, and runtime backend file copy
+  behind the game helper.
+- Added CMake install/export rules for engine targets, headers, package config,
+  version file, and helper module.
+- Added build-tree package files so consumers can test find_package against the
+  local build directory.
+- Added typed event system with EventWorld, EventBus, and Subscription.
+- Added RAII event subscriptions that auto-unsubscribe when destroyed.
+- Added once listeners that remove themselves after the first matching event.
+- Added immediate emit() support.
+- Added deferred emitDeferred() support with EventWorld::flush().
+- Added built-in Update event with dt.
+- Engine now emits Update events on the engine bus each frame and flushes
+  deferred events after the frame's placeholder render step.
 
 0.0.1
 

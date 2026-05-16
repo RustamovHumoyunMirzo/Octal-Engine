@@ -57,27 +57,23 @@ int main()
 
 ## Include Paths And Linking
 
-The root `CMakeLists.txt` exposes `engine/core` as a public include directory for
-the `OctalEngine` target:
+For a game project, use the package helper instead of linking engine internals
+directly:
 
 ```cmake
-target_include_directories(OctalEngine PUBLIC engine/core)
+cmake_minimum_required(VERSION 3.20)
+project(MyGame)
+
+find_package(OctalEngine REQUIRED)
+
+OctalEngine_AddGame(MyGame
+    src/main.cpp
+)
 ```
 
-That means engine users can include public headers directly:
-
-```cpp
-#include "Engine.h"
-#include "EngineTime.h"
-#include "Loop.h"
-```
-
-When adding your own executable in CMake, link it with `OctalEngine`:
-
-```cmake
-add_executable(MyGame src/main.cpp)
-target_link_libraries(MyGame PRIVATE OctalEngine)
-```
+`OctalEngine_AddGame` creates the executable, applies the required C++ standard,
+links the correct Octal Engine targets, and handles runtime backend files when
+needed.
 
 ## Platform Layer
 
@@ -99,11 +95,12 @@ cmake -S . -B build -DOCTAL_BUILD_PLATFORM=OFF
 Windowed applications should link both targets:
 
 ```cmake
-target_link_libraries(MyGame PRIVATE OctalEngine OctalEnginePlatform)
+OctalEngine_AddGame(MyGame
+    src/main.cpp
+)
 ```
 
-Then create a platform, create a window, and pass the runtime mode into
-`Engine`:
+Then create a platform, create a window, and pass the runtime mode into `Engine`:
 
 ```cpp
 #include "Engine.h"
