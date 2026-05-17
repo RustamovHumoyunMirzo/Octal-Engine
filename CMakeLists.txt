@@ -5,11 +5,24 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(OCTALENGINE_VERSION "0.1.0-alpha")
+
 option(OCTAL_BUILD_PLATFORM "Build the platform and windowing layer" ON)
 option(OCTAL_BUILD_SANDBOXES "Build Octal Engine sandbox executables" ON)
 
 include(CMakePackageConfigHelpers)
 
+# -----------------------------
+# bgfx package
+# -----------------------------
+list(APPEND CMAKE_PREFIX_PATH
+    "${CMAKE_SOURCE_DIR}/third_party/bgfx/cmake"
+)
+
+find_package(bgfx CONFIG REQUIRED)
+
+# -----------------------------
+# Engine Core
+# -----------------------------
 file(GLOB_RECURSE ENGINE_CORE_SRC
     engine/core/*.cpp
 )
@@ -22,7 +35,15 @@ target_include_directories(OctalEngine PUBLIC
     $<INSTALL_INTERFACE:include/OctalEngine/core>
 )
 
+target_link_libraries(OctalEngine PUBLIC
+    bgfx::bgfx
+)
+
+# -----------------------------
+# Platform Layer
+# -----------------------------
 if(OCTAL_BUILD_PLATFORM)
+
     set(SDL2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/SDL2/cmake" CACHE PATH "Path to SDL2 CMake package")
     find_package(SDL2 CONFIG REQUIRED)
 
@@ -39,41 +60,32 @@ if(OCTAL_BUILD_PLATFORM)
     )
 
     target_link_libraries(OctalEnginePlatform
-        PUBLIC
-        OctalEngine
-        PRIVATE
-        SDL2::SDL2
+        PUBLIC OctalEngine
+        PRIVATE SDL2::SDL2
     )
+
 endif()
 
-set(OCTALENGINE_RUNTIME_DLL "")
-
-if(TARGET OctalEnginePlatform AND WIN32)
-    set(OCTALENGINE_RUNTIME_DLL "${CMAKE_CURRENT_SOURCE_DIR}/third_party/SDL2/bin/SDL2.dll")
-endif()
-
+# -----------------------------
+# Sandbox system
+# -----------------------------
 if(OCTAL_BUILD_SANDBOXES)
+
     include(cmake/OctalEngine.cmake)
 
-    OctalEngine_AddGame(Sandbox test/main.cpp)
-
     if(TARGET OctalEnginePlatform)
-        OctalEngine_AddGame(WindowedSandbox test/windowed.cpp)
+        OctalEngine_AddGame(TestSandbox test/test.cpp)
     endif()
+
 endif()
 
-set(OCTALENGINE_SDL2_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/SDL2/cmake")
-
+# -----------------------------
+# Package Config
+# -----------------------------
 configure_package_config_file(
     cmake/OctalEngineConfig.cmake.in
     "${CMAKE_CURRENT_BINARY_DIR}/OctalEngineConfig.cmake"
     INSTALL_DESTINATION lib/cmake/OctalEngine
-)
-
-configure_file(
-    cmake/OctalEngine.cmake
-    "${CMAKE_CURRENT_BINARY_DIR}/OctalEngine.cmake"
-    COPYONLY
 )
 
 write_basic_package_version_file(
@@ -82,33 +94,29 @@ write_basic_package_version_file(
     COMPATIBILITY SameMajorVersion
 )
 
+# -----------------------------
+# EXPORT
+# -----------------------------
+set(EXPORT_TARGETS OctalEngine)
+
 if(TARGET OctalEnginePlatform)
-    export(TARGETS OctalEngine OctalEnginePlatform
-        FILE "${CMAKE_CURRENT_BINARY_DIR}/OctalEngineTargets.cmake"
-        NAMESPACE OctalEngine::
-    )
-else()
-    export(TARGETS OctalEngine
-        FILE "${CMAKE_CURRENT_BINARY_DIR}/OctalEngineTargets.cmake"
-        NAMESPACE OctalEngine::
-    )
+    list(APPEND EXPORT_TARGETS OctalEnginePlatform)
 endif()
 
-install(TARGETS OctalEngine
+export(TARGETS ${EXPORT_TARGETS}
+    FILE "${CMAKE_CURRENT_BINARY_DIR}/OctalEngineTargets.cmake"
+    NAMESPACE OctalEngine::
+)
+
+# -----------------------------
+# INSTALL
+# -----------------------------
+install(TARGETS ${EXPORT_TARGETS}
     EXPORT OctalEngineTargets
     ARCHIVE DESTINATION lib
     LIBRARY DESTINATION lib
     RUNTIME DESTINATION bin
 )
-
-if(TARGET OctalEnginePlatform)
-    install(TARGETS OctalEnginePlatform
-        EXPORT OctalEngineTargets
-        ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib
-        RUNTIME DESTINATION bin
-    )
-endif()
 
 install(DIRECTORY engine/core/
     DESTINATION include/OctalEngine/core

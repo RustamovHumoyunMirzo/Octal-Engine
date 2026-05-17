@@ -15,3 +15,7 @@ CMakeFiles/
 *.dll
 *.obj
 *.pdb
+
+# Third-party libraries
+third_party/*
+!third_party/README.md

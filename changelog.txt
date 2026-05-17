@@ -1,7 +1,13 @@
 Octal Engine Changelog
 
-Current version: 0.1.0-alpha
+Current version: 0.1.0-beta
 First version: 0.0.1
+
+0.1.0-beta
+
+- Added new third-party library dependency: bgfx.
+- Added build_bgfx.ps1 script to automate bgfx build and integration.
+- Integrated bgfx into the project with CMake support.
 
 0.1.0-alpha
 
