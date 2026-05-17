@@ -40,7 +40,6 @@ namespace OctalEngine
 
             eventWorld.engine().emit<Update>({dt});
             loop.update(dt);
-            loop.render();
             eventWorld.flush();
         }
     }

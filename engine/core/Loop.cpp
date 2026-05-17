@@ -9,9 +9,4 @@ namespace OctalEngine
     {
         // logic placeholder
     }
-
-    void GameLoop::render()
-    {
-        // render placeholder
-    }
 }

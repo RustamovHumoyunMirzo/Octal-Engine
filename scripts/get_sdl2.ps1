@@ -16,7 +16,7 @@ if (Test-Path $srcDir) {
     Remove-Item -Recurse -Force $srcDir
 }
 
-Write-Host "Extracting with CMake (fixes Windows path issues)..."
+Write-Host "Extracting with CMake..."
 cmake -E tar xzf $archive
 
 $extracted = Get-ChildItem | Where-Object { $_.Name -like "SDL2-*" -and $_.PSIsContainer } | Select-Object -First 1

@@ -6,6 +6,5 @@ namespace OctalEngine
     {
     public:
         void update(float dt);
-        void render();
     };
 }
