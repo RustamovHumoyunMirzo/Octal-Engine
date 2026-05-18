@@ -1,6 +1,7 @@
 #include "Window.h"
 
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_syswm.h>
 
 namespace OctalEngine
 {
@@ -13,7 +14,113 @@ namespace OctalEngine
 
         SDL_Window* window = nullptr;
         WindowId id = 0;
+        WindowEvents events;
     };
+
+    WindowSubscription::WindowSubscription(std::function<void()> unsubscribe)
+        : unsubscribe(std::move(unsubscribe))
+    {
+    }
+
+    WindowSubscription::~WindowSubscription()
+    {
+        reset();
+    }
+
+    WindowSubscription::WindowSubscription(WindowSubscription&& other) noexcept
+        : unsubscribe(std::move(other.unsubscribe))
+    {
+        other.unsubscribe = nullptr;
+    }
+
+    WindowSubscription& WindowSubscription::operator=(WindowSubscription&& other) noexcept
+    {
+        if (this != &other)
+        {
+            reset();
+            unsubscribe = std::move(other.unsubscribe);
+            other.unsubscribe = nullptr;
+        }
+
+        return *this;
+    }
+
+    void WindowSubscription::reset()
+    {
+        if (unsubscribe != nullptr)
+        {
+            unsubscribe();
+            unsubscribe = nullptr;
+        }
+    }
+
+    bool WindowSubscription::active() const
+    {
+        return unsubscribe != nullptr;
+    }
+
+    WindowEvents::WindowEvents()
+        : alive(std::make_shared<bool>(true))
+    {
+    }
+
+    WindowEvents::~WindowEvents()
+    {
+        if (alive != nullptr)
+        {
+            *alive = false;
+        }
+    }
+
+    WindowSubscription WindowEvents::onResize(std::function<void(const WindowResized&)> callback)
+    {
+        return subscribe(resizedHandlers, std::move(callback));
+    }
+
+    WindowSubscription WindowEvents::onMove(std::function<void(const WindowMoved&)> callback)
+    {
+        return subscribe(movedHandlers, std::move(callback));
+    }
+
+    WindowSubscription WindowEvents::onMinimize(std::function<void(const WindowMinimized&)> callback)
+    {
+        return subscribe(minimizedHandlers, std::move(callback));
+    }
+
+    WindowSubscription WindowEvents::onMaximize(std::function<void(const WindowMaximized&)> callback)
+    {
+        return subscribe(maximizedHandlers, std::move(callback));
+    }
+
+    WindowSubscription WindowEvents::onRestore(std::function<void(const WindowRestored&)> callback)
+    {
+        return subscribe(restoredHandlers, std::move(callback));
+    }
+
+    WindowSubscription WindowEvents::onShow(std::function<void(const WindowShown&)> callback)
+    {
+        return subscribe(shownHandlers, std::move(callback));
+    }
+
+    WindowSubscription WindowEvents::onHide(std::function<void(const WindowHidden&)> callback)
+    {
+        return subscribe(hiddenHandlers, std::move(callback));
+    }
+
+    WindowSubscription WindowEvents::onFocusGained(std::function<void(const WindowFocusGained&)> callback)
+    {
+        return subscribe(focusGainedHandlers, std::move(callback));
+    }
+
+    WindowSubscription WindowEvents::onFocusLost(std::function<void(const WindowFocusLost&)> callback)
+    {
+        return subscribe(focusLostHandlers, std::move(callback));
+    }
+
+    WindowSubscription WindowEvents::onCloseRequested(std::function<void(const WindowCloseRequested&)> callback)
+    {
+        return subscribe(closeRequestedHandlers, std::move(callback));
+    }
 
     Window::Window(void* nativeWindow)
         : impl(std::make_unique<Impl>(static_cast<SDL_Window*>(nativeWindow)))
@@ -183,8 +290,84 @@ namespace OctalEngine
         }
     }
 
+    WindowEvents& Window::events()
+    {
+        return impl->events;
+    }
+
+    const WindowEvents& Window::events() const
+    {
+        return impl->events;
+    }
+
     void* Window::nativeHandle() const
     {
-        return isOpen() ? impl->window : nullptr;
+        if (!isOpen())
+        {
+            return nullptr;
+        }
+
+        SDL_SysWMinfo info;
+        SDL_VERSION(&info.version);
+
+        if (SDL_GetWindowWMInfo(impl->window, &info) == SDL_FALSE)
+        {
+            return nullptr;
+        }
+
+#if defined(_WIN32)
+        return info.info.win.window;
+#elif defined(__APPLE__)
+        return info.info.cocoa.window;
+#elif defined(__linux__)
+        return reinterpret_cast<void*>(info.info.x11.window);
+#else
+        return impl->window;
+#endif
+    }
+
+    void Window::handlePlatformEvent(std::uint8_t event, int data1, int data2)
+    {
+        if (impl == nullptr)
+        {
+            return;
+        }
+
+        switch (event)
+        {
+        case SDL_WINDOWEVENT_SHOWN:
+            impl->events.emit(impl->events.shownHandlers, WindowShown{});
+            break;
+        case SDL_WINDOWEVENT_HIDDEN:
+            impl->events.emit(impl->events.hiddenHandlers, WindowHidden{});
+            break;
+        case SDL_WINDOWEVENT_MOVED:
+            impl->events.emit(impl->events.movedHandlers, WindowMoved{data1, data2});
+            break;
+        case SDL_WINDOWEVENT_SIZE_CHANGED:
+        case SDL_WINDOWEVENT_RESIZED:
+            impl->events.emit(impl->events.resizedHandlers, WindowResized{data1, data2});
+            break;
+        case SDL_WINDOWEVENT_MINIMIZED:
+            impl->events.emit(impl->events.minimizedHandlers, WindowMinimized{});
+            break;
+        case SDL_WINDOWEVENT_MAXIMIZED:
+            impl->events.emit(impl->events.maximizedHandlers, WindowMaximized{});
+            break;
+        case SDL_WINDOWEVENT_RESTORED:
+            impl->events.emit(impl->events.restoredHandlers, WindowRestored{});
+            break;
+        case SDL_WINDOWEVENT_FOCUS_GAINED:
+            impl->events.emit(impl->events.focusGainedHandlers, WindowFocusGained{});
+            break;
+        case SDL_WINDOWEVENT_FOCUS_LOST:
+            impl->events.emit(impl->events.focusLostHandlers, WindowFocusLost{});
+            break;
+        case SDL_WINDOWEVENT_CLOSE:
+            impl->events.emit(impl->events.closeRequestedHandlers, WindowCloseRequested{});
+            break;
+        default:
+            break;
+        }
     }
 }

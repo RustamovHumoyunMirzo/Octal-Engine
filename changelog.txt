@@ -8,6 +8,31 @@ First version: 0.0.1
 - Added new third-party library dependency: bgfx.
 - Added build_bgfx.ps1 script to automate bgfx build and integration.
 - Integrated bgfx into the project with CMake support.
+- Added OctalEngineJobs target with a lightweight thread-pool job system.
+- Added OctalEngineRenderer target with a public Renderer facade.
+- Added RendererInitSettings with headless and windowed rendering support.
+- Added Mesh, Vertex, VertexBuffer, IndexBuffer, Material stub, Mat4, and
+  RenderCommand public renderer-facing types.
+- Added internal render command buffers and a dedicated render thread.
+- Isolated bgfx usage inside engine/renderer/backend.
+- Added bgfx-backed mesh upload, shader loading, frame submission, and resize
+  handling.
+- Added third_party/bgfx/shaders cube shader assets used by the minimal backend.
+- Added renderer headless mode that accepts render commands without bgfx/GPU
+  initialization.
+- Added Renderer::resize(width, height).
+- Added native OS window handle lookup for Window::nativeHandle().
+- Added per-window event subscriptions through window->events().
+- Added window resize, move, minimize, maximize, restore, show, hide, focus,
+  and close-request events.
+- Routed SDL window events to the specific Window instance that owns them.
+- Updated TestSandbox to create a window, initialize Renderer, submit a rotating
+  cube from engine-driven Update events, and resize the renderer from that
+  window's resize event.
+- Updated public docs for renderer, job system, per-window events, and the cube
+  rendering example.
+- Updated OctalEngine_AddGame to link renderer and jobs targets when available.
+- Aligned MSVC runtime settings with the bundled bgfx static libraries.
 
 0.1.0-alpha
 

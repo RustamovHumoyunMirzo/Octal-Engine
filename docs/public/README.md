@@ -2,7 +2,7 @@
 
 Octal Engine is an early-stage C++20 game engine library. The public API is
 currently small and centered around starting the engine loop, stepping time, and
-running update/render work.
+submitting explicit renderer commands.
 
 These docs are written for people using the engine from their own C++ code.
 Internal design notes live in [`../internal`](../internal/).
@@ -41,6 +41,8 @@ All public engine classes currently live in the `OctalEngine` namespace.
 | `Platform.h` | `OctalEngine::Platform` | Optional event-pumping interface for integrations. |
 | `EngineTime.h` | `OctalEngine::Time` | Produces the frame delta time used by the loop. |
 | `Loop.h` | `OctalEngine::GameLoop` | Provides update and render steps called each frame. |
+| `JobSystem.h` | `OctalEngine::JobSystem` | Dispatches work to a small thread pool. |
+| `Renderer.h` | `OctalEngine::Renderer`, `OctalEngine::Mesh` | Submits mesh and vertex draw commands to the render thread. |
 | `PlatformSystem.h` | `OctalEngine::PlatformSystem` | Platform and window manager. |
 | `Window.h` | `OctalEngine::Window` | Runtime window control API. |
 
@@ -88,6 +90,59 @@ int main()
     config.mode = OctalEngine::WindowedMode{window.get()};
 
     OctalEngine::Engine engine(platform, config);
+
+engine.run();
+}
+```
+
+## Cube Render Command Example
+
+The renderer currently executes user-issued render commands. Submit those
+commands from work driven by `engine.run()`; user code should not own the engine
+loop.
+
+```cpp
+#include "Renderer.h"
+
+#include <cstdint>
+#include <vector>
+
+int main()
+{
+    std::vector<OctalEngine::Vertex> vertices = {
+        {-1, -1, -1, 0, 0, -1, 0, 0},
+        { 1, -1, -1, 0, 0, -1, 1, 0},
+        { 1,  1, -1, 0, 0, -1, 1, 1},
+        {-1,  1, -1, 0, 0, -1, 0, 1},
+        {-1, -1,  1, 0, 0,  1, 0, 0},
+        { 1, -1,  1, 0, 0,  1, 1, 0},
+        { 1,  1,  1, 0, 0,  1, 1, 1},
+        {-1,  1,  1, 0, 0,  1, 0, 1},
+    };
+
+    std::vector<std::uint16_t> indices = {
+        0, 1, 2, 2, 3, 0,
+        4, 6, 5, 6, 4, 7,
+        0, 4, 5, 5, 1, 0,
+        3, 2, 6, 6, 7, 3,
+        1, 5, 6, 6, 2, 1,
+        0, 3, 7, 7, 4, 0,
+    };
+
+    OctalEngine::RendererInitSettings settings;
+    settings.headless = false;
+    settings.nativeWindowHandle = window->nativeHandle();
+
+    OctalEngine::Renderer renderer(settings);
+    OctalEngine::Mesh cube(vertices, indices);
+    OctalEngine::Engine engine(config);
+
+    auto renderCube = engine.events().engine().subscribe<OctalEngine::Update>(
+        [&renderer, &cube](const OctalEngine::Update&) {
+            renderer.beginFrame();
+            renderer.drawMesh(cube, OctalEngine::Mat4::identity());
+            renderer.endFrame();
+        });
 
     engine.run();
 }

@@ -4,6 +4,12 @@ project(OctalEngine VERSION 0.1.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+if(MSVC)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+    add_compile_options(/Zc:__cplusplus /Zc:preprocessor)
+    add_compile_definitions($<$<CONFIG:Debug>:_ITERATOR_DEBUG_LEVEL=0>)
+endif()
+
 set(OCTALENGINE_VERSION "0.1.0-alpha")
 
 option(OCTAL_BUILD_PLATFORM "Build the platform and windowing layer" ON)
@@ -35,8 +41,47 @@ target_include_directories(OctalEngine PUBLIC
     $<INSTALL_INTERFACE:include/OctalEngine/core>
 )
 
-target_link_libraries(OctalEngine PUBLIC
-    bgfx::bgfx
+# -----------------------------
+# Jobs
+# -----------------------------
+file(GLOB_RECURSE ENGINE_JOBS_SRC
+    engine/jobs/*.cpp
+)
+
+add_library(OctalEngineJobs ${ENGINE_JOBS_SRC})
+add_library(OctalEngine::OctalEngineJobs ALIAS OctalEngineJobs)
+
+target_include_directories(OctalEngineJobs PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/engine/jobs>
+    $<INSTALL_INTERFACE:include/OctalEngine/jobs>
+)
+
+# -----------------------------
+# Renderer
+# -----------------------------
+file(GLOB_RECURSE ENGINE_RENDERER_SRC
+    engine/renderer/*.cpp
+)
+
+add_library(OctalEngineRenderer ${ENGINE_RENDERER_SRC})
+add_library(OctalEngine::OctalEngineRenderer ALIAS OctalEngineRenderer)
+
+target_include_directories(OctalEngineRenderer PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/engine/renderer>
+    $<INSTALL_INTERFACE:include/OctalEngine/renderer>
+)
+
+target_link_libraries(OctalEngineRenderer
+    PRIVATE
+        bgfx::bgfx
+        bgfx::bx
+        bgfx::bimg
+        bgfx::bimg_decode
+)
+
+target_compile_definitions(OctalEngineRenderer PRIVATE
+    OCTAL_BGFX_SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/third_party/bgfx/shaders"
+    BX_CONFIG_DEBUG=0
 )
 
 # -----------------------------
@@ -97,7 +142,7 @@ write_basic_package_version_file(
 # -----------------------------
 # EXPORT
 # -----------------------------
-set(EXPORT_TARGETS OctalEngine)
+set(EXPORT_TARGETS OctalEngine OctalEngineJobs OctalEngineRenderer)
 
 if(TARGET OctalEnginePlatform)
     list(APPEND EXPORT_TARGETS OctalEnginePlatform)
@@ -121,6 +166,19 @@ install(TARGETS ${EXPORT_TARGETS}
 install(DIRECTORY engine/core/
     DESTINATION include/OctalEngine/core
     FILES_MATCHING PATTERN "*.h"
+)
+
+install(DIRECTORY engine/jobs/
+    DESTINATION include/OctalEngine/jobs
+    FILES_MATCHING PATTERN "*.h"
+)
+
+install(DIRECTORY engine/renderer/
+    DESTINATION include/OctalEngine/renderer
+    FILES_MATCHING
+        PATTERN "*.h"
+        PATTERN "backend" EXCLUDE
+        PATTERN "internal" EXCLUDE
 )
 
 if(TARGET OctalEnginePlatform)

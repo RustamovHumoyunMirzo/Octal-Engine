@@ -32,24 +32,38 @@ cmake --build build
 The build creates:
 
 - `OctalEngine` static library
-- `Sandbox` executable from `test/main.cpp`
+- `OctalEngineJobs` static library
+- `OctalEngineRenderer` static library
+- `TestSandbox` executable from `test/test.cpp`
 
 ## Run The Sandbox
 
 After building, run the generated sandbox executable from your build directory.
 The exact path can vary by CMake generator and build configuration.
 
-The current sandbox creates an `OctalEngine::Engine` and calls `run()`:
+The current sandbox creates a window, creates an engine, and submits a cube mesh
+through `OctalEngine::Renderer` from inside `engine.run()`.
 
 ```cpp
 #include "Engine.h"
+#include "Renderer.h"
 
 int main()
 {
-    OctalEngine::EngineConfig config;
-    config.mode = OctalEngine::HeadlessMode{};
+    OctalEngine::RendererInitSettings settings;
+    settings.headless = false;
+    settings.nativeWindowHandle = window->nativeHandle();
+
+    OctalEngine::Renderer renderer(settings);
+    OctalEngine::Mesh cube(vertices, indices);
 
     OctalEngine::Engine engine(config);
+    auto renderCube = engine.events().engine().subscribe<OctalEngine::Update>(
+        [&renderer, &cube](const OctalEngine::Update&) {
+            renderer.beginFrame();
+            renderer.drawMesh(cube);
+            renderer.endFrame();
+        });
 
     engine.run();
 }

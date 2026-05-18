@@ -102,3 +102,37 @@ void setResizable(bool enabled);
 
 These functions expose common runtime window controls. `setFullscreen()` returns
 `false` if the native window is closed or the backend rejects the mode change.
+
+## Per-Window Events
+
+```cpp
+WindowEvents& events();
+
+auto resized = window->events().onResize(
+    [](const OctalEngine::WindowResized& event) {
+        // event.width, event.height
+    });
+
+auto minimized = window->events().onMinimize(
+    [](const OctalEngine::WindowMinimized&) {
+    });
+```
+
+Window events are attached to the specific `Window` returned by
+`PlatformSystem::createWindow()`. There is no global window event bus.
+
+Available callbacks:
+
+- `onResize(WindowResized)`
+- `onMove(WindowMoved)`
+- `onMinimize(WindowMinimized)`
+- `onMaximize(WindowMaximized)`
+- `onRestore(WindowRestored)`
+- `onShow(WindowShown)`
+- `onHide(WindowHidden)`
+- `onFocusGained(WindowFocusGained)`
+- `onFocusLost(WindowFocusLost)`
+- `onCloseRequested(WindowCloseRequested)`
+
+Keep the returned `WindowSubscription` alive for as long as the callback should
+remain active.

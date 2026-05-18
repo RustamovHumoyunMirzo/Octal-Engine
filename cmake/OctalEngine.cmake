@@ -23,6 +23,18 @@ function(OctalEngine_AddGame NAME)
         message(FATAL_ERROR "OctalEngine targets were not found. Call find_package(OctalEngine REQUIRED) first.")
     endif()
 
+    if(TARGET OctalEngine::OctalEngineRenderer)
+        target_link_libraries(${NAME} PRIVATE OctalEngine::OctalEngineRenderer)
+    elseif(TARGET OctalEngineRenderer)
+        target_link_libraries(${NAME} PRIVATE OctalEngineRenderer)
+    endif()
+
+    if(TARGET OctalEngine::OctalEngineJobs)
+        target_link_libraries(${NAME} PRIVATE OctalEngine::OctalEngineJobs)
+    elseif(TARGET OctalEngineJobs)
+        target_link_libraries(${NAME} PRIVATE OctalEngineJobs)
+    endif()
+
     if(WIN32 AND DEFINED OctalEngine_RUNTIME_DLL AND EXISTS "${OctalEngine_RUNTIME_DLL}")
         add_custom_command(TARGET ${NAME} POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different

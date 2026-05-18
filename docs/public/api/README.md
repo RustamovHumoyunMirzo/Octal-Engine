@@ -10,7 +10,9 @@ All public classes are in the `OctalEngine` namespace.
 - [`Platform`](platform.md) - optional interface for platform event pumping.
 - [`Time`](time.md) - returns frame delta time values.
 - [`GameLoop`](game-loop.md) - update and render operations called by the engine.
+- [`JobSystem`](jobs.md) - lightweight thread pool and job dispatch API.
 - [`PlatformSystem`](platform-system.md) - platform implementation and window manager.
+- [`Renderer`](renderer.md) - render facade, mesh submission, and headless command execution.
 - [`Window`](window.md) - window control API.
 
 ## Headers
@@ -21,9 +23,11 @@ All public classes are in the `OctalEngine` namespace.
 #include "Platform.h"
 #include "EngineTime.h"
 #include "Loop.h"
+#include "JobSystem.h"
 #include "PlatformSystem.h"
+#include "Renderer.h"
 #include "Window.h"
 ```
 
-The project currently exposes these headers through the `OctalEngine` CMake
-target's public include directory.
+The project exposes renderer and job headers through their own CMake targets.
+`OctalEngine_AddGame` links those targets automatically when they are available.

@@ -19,3 +19,7 @@ CMakeFiles/
 # Third-party libraries
 third_party/*
 !third_party/README.md
+!third_party/bgfx/
+third_party/bgfx/*
+!third_party/bgfx/shaders/
+!third_party/bgfx/shaders/**

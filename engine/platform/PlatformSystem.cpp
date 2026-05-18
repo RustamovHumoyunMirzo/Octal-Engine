@@ -123,9 +123,19 @@ namespace OctalEngine
                 continue;
             }
 
-            if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE)
+            if (event.type == SDL_WINDOWEVENT)
             {
-                closeWindow(event.window.windowID);
+                auto window = findWindow(event.window.windowID);
+
+                if (window != nullptr)
+                {
+                    window->handlePlatformEvent(event.window.event, event.window.data1, event.window.data2);
+                }
+
+                if (event.window.event == SDL_WINDOWEVENT_CLOSE)
+                {
+                    closeWindow(event.window.windowID);
+                }
             }
         }
 

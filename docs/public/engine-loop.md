@@ -62,9 +62,11 @@ Each frame calls:
 1. `GameLoop::update(dt)`
 2. `GameLoop::render()`
 
-Use `update(dt)` for simulation and gameplay state changes. `render()` is still
-called by the current loop, but no rendering abstraction, framebuffer logic, or
-presentation layer exists yet.
+Use `update(dt)` for simulation and gameplay state changes. Rendering is exposed
+through `OctalEngine::Renderer`, which records user-issued draw commands between
+`beginFrame()` and `endFrame()` and submits them to a render thread. User code
+should submit those commands from engine-driven work, such as an update event,
+while `Engine::run()` remains the owner of the frame loop.
 
 ## Engine Update Event
 
