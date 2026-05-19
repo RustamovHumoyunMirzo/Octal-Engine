@@ -41,6 +41,7 @@ All public engine classes currently live in the `OctalEngine` namespace.
 | `Platform.h` | `OctalEngine::Platform` | Optional event-pumping interface for integrations. |
 | `EngineTime.h` | `OctalEngine::Time` | Produces the frame delta time used by the loop. |
 | `Loop.h` | `OctalEngine::GameLoop` | Provides update and render steps called each frame. |
+| `InputManager.h` | `OctalEngine::InputManager` | Action-based input, contexts, rebinding, and raw input access. |
 | `JobSystem.h` | `OctalEngine::JobSystem` | Dispatches work to a small thread pool. |
 | `Renderer.h` | `OctalEngine::Renderer`, `OctalEngine::Mesh` | Submits mesh and vertex draw commands to the render thread. |
 | `PlatformSystem.h` | `OctalEngine::PlatformSystem` | Platform and window manager. |

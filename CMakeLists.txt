@@ -31,6 +31,7 @@ find_package(bgfx CONFIG REQUIRED)
 # -----------------------------
 file(GLOB_RECURSE ENGINE_CORE_SRC
     engine/core/*.cpp
+    engine/input/*.cpp
 )
 
 add_library(OctalEngine ${ENGINE_CORE_SRC})
@@ -38,7 +39,9 @@ add_library(OctalEngine::OctalEngine ALIAS OctalEngine)
 
 target_include_directories(OctalEngine PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/engine/core>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/engine/input>
     $<INSTALL_INTERFACE:include/OctalEngine/core>
+    $<INSTALL_INTERFACE:include/OctalEngine/input>
 )
 
 # -----------------------------
@@ -165,6 +168,11 @@ install(TARGETS ${EXPORT_TARGETS}
 
 install(DIRECTORY engine/core/
     DESTINATION include/OctalEngine/core
+    FILES_MATCHING PATTERN "*.h"
+)
+
+install(DIRECTORY engine/input/
+    DESTINATION include/OctalEngine/input
     FILES_MATCHING PATTERN "*.h"
 )
 

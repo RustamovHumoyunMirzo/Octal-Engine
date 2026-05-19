@@ -4,6 +4,7 @@ build/
 # Visual Studio
 .vs/
 *.vcxproj.user
+.vscode/
 
 # CMake
 CMakeCache.txt

@@ -14,7 +14,6 @@ while (running)
 
     events.engine().emit<Update>({dt});
     loop.update(dt);
-    loop.render();
     events.flush();
 }
 ```
@@ -67,6 +66,10 @@ through `OctalEngine::Renderer`, which records user-issued draw commands between
 `beginFrame()` and `endFrame()` and submits them to a render thread. User code
 should submit those commands from engine-driven work, such as an update event,
 while `Engine::run()` remains the owner of the frame loop.
+
+`GameLoop::update(dt)` also advances input frame state through
+`InputManager::updateFrame(dt)`, after platform events have been pumped and
+gameplay has had a chance to read action transitions.
 
 ## Engine Update Event
 

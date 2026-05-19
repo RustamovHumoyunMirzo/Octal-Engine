@@ -1,12 +1,12 @@
 /* Game Loop */
 
 #include "Loop.h"
-#include <iostream>
+#include "InputManager.h"
 
 namespace OctalEngine
 {
     void GameLoop::update(float dt)
     {
-        // logic placeholder
+        InputManager::updateFrame(dt);
     }
 }

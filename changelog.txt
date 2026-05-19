@@ -33,6 +33,15 @@ First version: 0.0.1
   rendering example.
 - Updated OctalEngine_AddGame to link renderer and jobs targets when available.
 - Aligned MSVC runtime settings with the bundled bgfx static libraries.
+- Added InputManager with action-based input polling and callbacks.
+- Added input contexts with priority and blocking behavior.
+- Added runtime rebinding, save/load binding stubs, and default binding reset.
+- Added raw keyboard, mouse, gamepad, cursor, and touch-facing API.
+- Wired SDL keyboard and mouse events into the input system through
+  PlatformSystem.
+- Advanced input frame state from GameLoop::update().
+- Updated TestSandbox to showcase input actions, context setup, runtime
+  rebinding, Escape-to-quit, and renderer resize from window events.
 
 0.1.0-alpha
 

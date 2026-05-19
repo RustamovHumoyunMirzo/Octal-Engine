@@ -34,8 +34,12 @@ namespace OctalEngine
 
     private:
         void pruneClosedWindows();
+        void openGameController(int deviceIndex);
+        void closeGameController(int instanceId);
+        void closeGameControllers();
 
         std::vector<std::weak_ptr<Window>> windows;
+        std::vector<void*> gameControllers;
         bool quitRequested = false;
         bool quitOnLastWindowClosed = true;
     };
