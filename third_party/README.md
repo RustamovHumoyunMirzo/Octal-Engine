@@ -4,3 +4,4 @@
 
 - [SDL2](https://www.libsdl.org/)
 - [bgfx, bx, bimg](https://github.com/bkaradzic/bgfx)
+- [EnTT](https://github.com/skypjack/entt)
