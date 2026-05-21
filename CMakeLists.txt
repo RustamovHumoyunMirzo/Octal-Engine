@@ -44,6 +44,10 @@ target_include_directories(OctalEngine PUBLIC
     $<INSTALL_INTERFACE:include/OctalEngine/input>
 )
 
+target_include_directories(OctalEngine PUBLIC
+    ${CMAKE_SOURCE_DIR}/third_party/entt
+)
+
 # -----------------------------
 # Jobs
 # -----------------------------

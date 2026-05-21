@@ -1,4 +1,4 @@
-**This directory contains third-party code that is used by the project. However, libraries and tools will be built runtime, so this directory is not expected to contain any code.**
+**This directory contains third-party code that is used by the project. However, libraries and tools will be built runtime, so this directory is not expected to contain any code except for the assets.**
 
 ## Third parties
 

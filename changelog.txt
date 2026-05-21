@@ -1,7 +1,13 @@
 Octal Engine Changelog
 
-Current version: 0.1.0-beta
+Current version: 0.1.0-gamma
 First version: 0.0.1
+
+0.1.0-gamma
+
+- Integrated EnTT into the CMake.
+- Added get_entt.ps1 script to automate EnTT download.
+- Added new third-party library dependency: EnTT.
 
 0.1.0-beta
 
