@@ -27,6 +27,9 @@ namespace OctalEngine::RendererInternal
 
         void submit(CommandBuffer buffer, bool waitForCompletion);
 
+        /// Returns the renderer type from the backend
+        RendererBackend::RendererType getRendererType() const;
+
     private:
         struct PendingFrame
         {

@@ -147,4 +147,13 @@ namespace OctalEngine::RendererInternal
             backend->shutdown();
         }
     }
+
+    RendererBackend::RendererType RenderThread::getRendererType() const
+    {
+        if (backend == nullptr)
+        {
+            return RendererBackend::RendererType::Auto;
+        }
+        return backend->getRendererType();
+    }
 }

@@ -9,6 +9,19 @@
 
 namespace OctalEngine
 {
+    /// Supported renderer types
+    enum class RendererType
+    {
+        Auto,
+        Direct3D11,  ///< DirectX 11
+        Direct3D12,  ///< DirectX 12
+        OpenGL,      ///< OpenGL
+        OpenGLES,    ///< OpenGL ES
+        Vulkan,      ///< Vulkan
+        Metal,       ///< Metal
+        WebGPU,      ///< WebGPU
+    };
+
     struct RendererInitSettings
     {
         bool headless = true;
@@ -16,6 +29,7 @@ namespace OctalEngine
         int width = 1280;
         int height = 720;
         bool waitForRenderThread = true;
+        RendererType rendererType = RendererType::Auto;  ///< Renderer API to use, defaults to auto selection
     };
 
     class Renderer
@@ -43,6 +57,10 @@ namespace OctalEngine
 
         bool isInitialized() const;
         bool isHeadless() const;
+
+        /// Returns the actual renderer type being used
+        /// If not initialized or in Auto mode, returns the actual backend type selected
+        RendererType getRendererType() const;
 
     private:
         struct Impl;

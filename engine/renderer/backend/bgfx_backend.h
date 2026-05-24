@@ -19,6 +19,7 @@ namespace OctalEngine::RendererBackend
         bool initialize(const BackendSettings& settings) override;
         void shutdown() override;
         void execute(const RendererInternal::CommandBuffer& commands) override;
+        RendererType getRendererType() const override;
 
     private:
         struct Impl;

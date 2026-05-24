@@ -8,6 +8,17 @@ First version: 0.0.1
 - Integrated EnTT into the CMake.
 - Added get_entt.ps1 script to automate EnTT download.
 - Added new third-party library dependency: EnTT.
+- Added public RendererType enum with support for Auto, Direct3D11, Direct3D12,
+  OpenGL, OpenGLES, Vulkan, Metal, and WebGPU.
+- Added RendererInitSettings::rendererType field to allow users to specify
+  which rendering API to use.
+- Added Renderer::getRendererType() to query the actual rendering API in use,
+  enabling users to determine which backend bgfx selected.
+- Added fallback to auto-detection mode when unsupported or unavailable
+  renderer types are requested.
+- Updated documentation with renderer type selection and querying information.
+- Updated TestSandbox to display the active renderer type on initialization.
+- Added input_manager_with_cube.cpp example
 
 0.1.0-beta
 

@@ -52,9 +52,18 @@ int main()
 {
     OctalEngine::RendererInitSettings settings;
     settings.headless = false;
+    settings.rendererType = OctalEngine::RendererType::Auto;  // Auto-detect or specify a type
     settings.nativeWindowHandle = window->nativeHandle();
 
     OctalEngine::Renderer renderer(settings);
+    if (!renderer.isInitialized())
+    {
+        return 1;
+    }
+
+    // Check which renderer API was selected
+    OctalEngine::RendererType currentType = renderer.getRendererType();
+    
     OctalEngine::Mesh cube(vertices, indices);
 
     OctalEngine::Engine engine(config);
@@ -67,6 +76,27 @@ int main()
 
     engine.run();
 }
+```
+
+## Renderer Types
+
+You can specify which rendering API to use when initializing the renderer:
+
+- `RendererType::Auto` - Let bgfx automatically select the best available renderer (default)
+- `RendererType::Direct3D11` - DirectX 11
+- `RendererType::Direct3D12` - DirectX 12
+- `RendererType::OpenGL` - OpenGL
+- `RendererType::OpenGLES` - OpenGL ES
+- `RendererType::Vulkan` - Vulkan
+- `RendererType::Metal` - Metal
+- `RendererType::WebGPU` - WebGPU
+
+If an unsupported or unavailable type is requested, the renderer will fall back to auto-detection.
+
+Use `renderer.getRendererType()` to query which API is currently in use:
+
+```cpp
+OctalEngine::RendererType activeAPI = renderer.getRendererType();
 ```
 
 ## Include Paths And Linking

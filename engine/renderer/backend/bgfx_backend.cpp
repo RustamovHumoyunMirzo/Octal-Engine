@@ -25,6 +25,54 @@ namespace OctalEngine::RendererBackend
             std::uint32_t abgr = 0xffffffff;
         };
 
+        bgfx::RendererType::Enum convertRendererType(RendererType type)
+        {
+            switch (type)
+            {
+            case RendererType::Auto:
+                return bgfx::RendererType::Count;  // Count means auto-detect
+            case RendererType::Direct3D11:
+                return bgfx::RendererType::Direct3D11;
+            case RendererType::Direct3D12:
+                return bgfx::RendererType::Direct3D12;
+            case RendererType::OpenGL:
+                return bgfx::RendererType::OpenGL;
+            case RendererType::OpenGLES:
+                return bgfx::RendererType::OpenGLES;
+            case RendererType::Vulkan:
+                return bgfx::RendererType::Vulkan;
+            case RendererType::Metal:
+                return bgfx::RendererType::Metal;
+            case RendererType::WebGPU:
+                return bgfx::RendererType::WebGPU;
+            default:
+                return bgfx::RendererType::Count;  // Default to auto
+            }
+        }
+
+        RendererType convertBgfxRendererType(bgfx::RendererType::Enum type)
+        {
+            switch (type)
+            {
+            case bgfx::RendererType::Direct3D11:
+                return RendererType::Direct3D11;
+            case bgfx::RendererType::Direct3D12:
+                return RendererType::Direct3D12;
+            case bgfx::RendererType::OpenGL:
+                return RendererType::OpenGL;
+            case bgfx::RendererType::OpenGLES:
+                return RendererType::OpenGLES;
+            case bgfx::RendererType::Vulkan:
+                return RendererType::Vulkan;
+            case bgfx::RendererType::Metal:
+                return RendererType::Metal;
+            case bgfx::RendererType::WebGPU:
+                return RendererType::WebGPU;
+            default:
+                return RendererType::Auto;
+            }
+        }
+
         bgfx::VertexLayout makeVertexLayout()
         {
             bgfx::VertexLayout layout;
@@ -175,6 +223,7 @@ namespace OctalEngine::RendererBackend
         bgfx::ProgramHandle program = BGFX_INVALID_HANDLE;
         std::uint16_t width = 1280;
         std::uint16_t height = 720;
+        RendererType actualRendererType = RendererType::Auto;
         std::unordered_map<std::uint64_t, GpuMesh> meshes;
 
         GpuMesh& uploadMesh(const Mesh& mesh)
@@ -287,11 +336,7 @@ namespace OctalEngine::RendererBackend
         }
 
         bgfx::Init init;
-#if defined(_WIN32)
-        init.type = bgfx::RendererType::Direct3D11;
-#else
-        init.type = bgfx::RendererType::Count;
-#endif
+        init.type = convertRendererType(settings.rendererType);
         init.platformData.nwh = settings.nativeWindowHandle;
         init.resolution.width = impl->width;
         init.resolution.height = impl->height;
@@ -301,6 +346,9 @@ namespace OctalEngine::RendererBackend
         {
             return false;
         }
+
+        // Capture the actual renderer type that bgfx selected
+        impl->actualRendererType = convertBgfxRendererType(bgfx::getRendererType());
 
         impl->vertexLayout = makeVertexLayout();
         bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x101820ff, 1.0f, 0);
@@ -412,5 +460,14 @@ namespace OctalEngine::RendererBackend
         }
 
         bgfx::frame();
+    }
+
+    RendererType BgfxBackend::getRendererType() const
+    {
+        if (!impl || !impl->initialized)
+        {
+            return RendererType::Auto;
+        }
+        return impl->actualRendererType;
     }
 }

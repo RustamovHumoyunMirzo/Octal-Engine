@@ -8,6 +8,59 @@
 
 namespace OctalEngine
 {
+    namespace
+    {
+        RendererBackend::RendererType convertRendererType(RendererType type)
+        {
+            switch (type)
+            {
+            case RendererType::Auto:
+                return RendererBackend::RendererType::Auto;
+            case RendererType::Direct3D11:
+                return RendererBackend::RendererType::Direct3D11;
+            case RendererType::Direct3D12:
+                return RendererBackend::RendererType::Direct3D12;
+            case RendererType::OpenGL:
+                return RendererBackend::RendererType::OpenGL;
+            case RendererType::OpenGLES:
+                return RendererBackend::RendererType::OpenGLES;
+            case RendererType::Vulkan:
+                return RendererBackend::RendererType::Vulkan;
+            case RendererType::Metal:
+                return RendererBackend::RendererType::Metal;
+            case RendererType::WebGPU:
+                return RendererBackend::RendererType::WebGPU;
+            default:
+                return RendererBackend::RendererType::Auto;
+            }
+        }
+
+        RendererType convertFromBackendRendererType(RendererBackend::RendererType type)
+        {
+            switch (type)
+            {
+            case RendererBackend::RendererType::Auto:
+                return RendererType::Auto;
+            case RendererBackend::RendererType::Direct3D11:
+                return RendererType::Direct3D11;
+            case RendererBackend::RendererType::Direct3D12:
+                return RendererType::Direct3D12;
+            case RendererBackend::RendererType::OpenGL:
+                return RendererType::OpenGL;
+            case RendererBackend::RendererType::OpenGLES:
+                return RendererType::OpenGLES;
+            case RendererBackend::RendererType::Vulkan:
+                return RendererType::Vulkan;
+            case RendererBackend::RendererType::Metal:
+                return RendererType::Metal;
+            case RendererBackend::RendererType::WebGPU:
+                return RendererType::WebGPU;
+            default:
+                return RendererType::Auto;
+            }
+        }
+    }
+
     struct Renderer::Impl
     {
         RendererInitSettings settings{};
@@ -52,6 +105,7 @@ namespace OctalEngine
         backendSettings.nativeWindowHandle = settings.nativeWindowHandle;
         backendSettings.width = settings.width;
         backendSettings.height = settings.height;
+        backendSettings.rendererType = convertRendererType(settings.rendererType);
 
         auto backend = RendererBackend::createRendererBackend();
         if (!impl->renderThread.start(std::move(backend), backendSettings))
@@ -154,5 +208,14 @@ namespace OctalEngine
     bool Renderer::isHeadless() const
     {
         return impl == nullptr || impl->settings.headless;
+    }
+
+    RendererType Renderer::getRendererType() const
+    {
+        if (impl == nullptr || !impl->initialized)
+        {
+            return RendererType::Auto;
+        }
+        return convertFromBackendRendererType(impl->renderThread.getRendererType());
     }
 }
