@@ -2,6 +2,12 @@
 
 I just wanted to create an easier to use game engine for who want to create games easily. I have been using Roblox Studio, Unity, UE5 for a while, but I wanted something more lightweight and easier to use. So I decided to create my own game engine.
 
+## Examples
+
+Basic Scene rendering with rotating cube, lighting and shadow.
+
+<img src="examples/img/001.png" width="500" height="300" alt="Scene Rendering"/>
+
 ---
 
 In active development. Not ready for use yet. If you interested in helping out, please reach out to me on Telegram: `@Humoyunbek_R`
