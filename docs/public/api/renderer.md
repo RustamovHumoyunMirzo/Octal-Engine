@@ -1,8 +1,10 @@
 # Renderer
 
-The renderer is a small facade for submitting explicit render commands. User
-code works with `Renderer`, `Mesh`, `VertexBuffer`, `IndexBuffer`, `Vertex`, and
-`Mat4`; bgfx and graphics API details stay inside the renderer backend.
+The renderer is a small facade for submitting explicit render commands. Normal
+scene objects are rendered internally by `Engine` from `MeshRendererComponent`.
+User code works with `Renderer`, `Mesh`, `VertexBuffer`, `IndexBuffer`,
+`Vertex`, and `Mat4` when it wants custom rendering; bgfx and graphics API
+details stay inside the renderer backend.
 
 ## Headers
 
@@ -23,6 +25,8 @@ renderer.endFrame();
 `beginFrame()` opens a command buffer on the calling thread. Draw calls append
 commands. `endFrame()` submits the finished buffer to the render thread. These
 calls should happen from engine-driven work while `Engine::run()` owns the loop.
+Disable internal scene rendering with `EngineConfig::renderScenes = false` when
+custom code owns the frame.
 
 ## Cube Example
 
@@ -72,6 +76,7 @@ native handle through `RendererInitSettings::nativeWindowHandle`.
 
 - `Renderer`: frame facade and command producer.
 - `RendererInitSettings`: startup settings, including `headless`.
+- `RenderCamera`: camera data submitted by the engine or custom render code.
 - `Mesh`: CPU-side vertex and index storage with an internal resource id.
 - `Vertex`: position, normal, and UV data.
 - `VertexBuffer` and `IndexBuffer`: small CPU-side buffer wrappers.

@@ -75,7 +75,8 @@ int main()
     auto window = platform.createWindow(windowDescriptor);
 
     OctalEngine::EngineConfig config;
-    config.mode = OctalEngine::WindowedMode{window.get()};
+    config.mode = OctalEngine::PlatformSystem::windowedModeFor(*window);
+    config.renderScenes = false;
 
     OctalEngine::RendererInitSettings rendererSettings;
     rendererSettings.headless = false;

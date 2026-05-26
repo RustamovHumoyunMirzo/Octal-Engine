@@ -41,39 +41,35 @@ The build creates:
 After building, run the generated sandbox executable from your build directory.
 The exact path can vary by CMake generator and build configuration.
 
-The current sandbox creates a window, creates an engine, and submits a cube mesh
-through `OctalEngine::Renderer` from inside `engine.run()`.
+The current sandbox exercises the scene API. Windowed scene objects with
+`MeshRendererComponent` are rendered internally by `Engine`.
 
 ```cpp
 #include "Engine.h"
-#include "Renderer.h"
+#include "PlatformSystem.h"
+#include "Scene.h"
 
 int main()
 {
-    OctalEngine::RendererInitSettings settings;
-    settings.headless = false;
-    settings.rendererType = OctalEngine::RendererType::Auto;  // Auto-detect or specify a type
-    settings.nativeWindowHandle = window->nativeHandle();
+    OctalEngine::PlatformSystem platform;
+    auto window = platform.createWindow();
 
-    OctalEngine::Renderer renderer(settings);
-    if (!renderer.isInitialized())
-    {
-        return 1;
-    }
+    OctalEngine::EngineConfig config;
+    config.mode = OctalEngine::PlatformSystem::windowedModeFor(*window);
 
-    // Check which renderer API was selected
-    OctalEngine::RendererType currentType = renderer.getRendererType();
-    
-    OctalEngine::Mesh cube(vertices, indices);
+    OctalEngine::Engine engine(platform, config);
+    auto scene = std::make_unique<OctalEngine::Scene>("Level");
 
-    OctalEngine::Engine engine(config);
-    auto renderCube = engine.events().engine().subscribe<OctalEngine::Update>(
-        [&renderer, &cube](const OctalEngine::Update&) {
-            renderer.beginFrame();
-            renderer.drawMesh(cube);
-            renderer.endFrame();
-        });
+    OctalEngine::Object camera = scene->createObject("Camera");
+    camera.addComponent<OctalEngine::TransformComponent>()->position = {0, 0, -6};
+    camera.addComponent<OctalEngine::CameraComponent>();
+    scene->setPrimaryCamera(camera);
 
+    OctalEngine::Object cube = scene->createObject("Cube");
+    cube.addComponent<OctalEngine::TransformComponent>();
+    cube.addComponent<OctalEngine::MeshRendererComponent>();
+
+    engine.scenes().load(std::move(scene));
     engine.run();
 }
 ```
@@ -156,7 +152,7 @@ int main()
     auto window = platform.createWindow();
 
     OctalEngine::EngineConfig config;
-    config.mode = OctalEngine::WindowedMode{window.get()};
+    config.mode = OctalEngine::PlatformSystem::windowedModeFor(*window);
 
     OctalEngine::Engine engine(platform, config);
 

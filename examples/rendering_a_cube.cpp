@@ -1,87 +1,53 @@
-// This sandbox submits a cube through the renderer API.
+// This sandbox renders a scene object through the engine's internal scene renderer.
 
 #include "Engine.h"
 #include "PlatformSystem.h"
-#include "Renderer.h"
+#include "Scene.h"
 
-#include <cstdint>
-#include <vector>
+#include <memory>
 
-namespace
+class CubeScene : public OctalEngine::Scene
 {
-    std::vector<OctalEngine::Vertex> createCubeVertices()
+public:
+    CubeScene()
+        : Scene("Cube Scene")
     {
-        using OctalEngine::Vertex;
-
-        return {
-            {-1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 0.0f},
-            {1.0f, -1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 0.0f},
-            {1.0f, 1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 1.0f, 1.0f},
-            {-1.0f, 1.0f, -1.0f, 0.0f, 0.0f, -1.0f, 0.0f, 1.0f},
-
-            {-1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f},
-            {1.0f, -1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f},
-            {1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f},
-            {-1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
-        };
     }
 
-    std::vector<std::uint16_t> createCubeIndices()
+private:
+    void onLoad() override
     {
-        return {
-            0, 1, 2, 2, 3, 0,
-            4, 6, 5, 6, 4, 7,
-            0, 4, 5, 5, 1, 0,
-            3, 2, 6, 6, 7, 3,
-            1, 5, 6, 6, 2, 1,
-            0, 3, 7, 7, 4, 0,
-        };
+        OctalEngine::Object camera = createObject("Camera");
+        camera.addComponent<OctalEngine::TransformComponent>()->position = {0.0f, 0.0f, -6.0f};
+        camera.addComponent<OctalEngine::CameraComponent>();
+        setPrimaryCamera(camera);
+
+        OctalEngine::Object cube = createObject("Cube");
+        cube.addComponent<OctalEngine::TransformComponent>();
+        cube.addComponent<OctalEngine::MeshRendererComponent>();
     }
-}
+};
 
 int main()
 {
     OctalEngine::PlatformSystem platform;
 
     OctalEngine::WindowDescriptor windowDescriptor;
-    windowDescriptor.title = "Renderer Rotating Cube";
+    windowDescriptor.title = "Octal Engine Scene Cube";
     windowDescriptor.width = 1280;
     windowDescriptor.height = 720;
 
     auto window = platform.createWindow(windowDescriptor);
 
     OctalEngine::EngineConfig config;
-    config.mode = OctalEngine::WindowedMode{window.get()};
+    config.mode = OctalEngine::PlatformSystem::windowedModeFor(*window);
 
-    OctalEngine::RendererInitSettings rendererSettings;
-    rendererSettings.headless = false;
-    rendererSettings.nativeWindowHandle = window->nativeHandle();
-    rendererSettings.width = windowDescriptor.width;
-    rendererSettings.height = windowDescriptor.height;
-    rendererSettings.waitForRenderThread = true;
-
-    OctalEngine::Renderer renderer(rendererSettings);
-
-    if (!renderer.isInitialized())
-    {
-        return 1;
-    }
-
-    OctalEngine::Mesh cube(createCubeVertices(), createCubeIndices());
     OctalEngine::Engine engine(platform, config);
-    float rotation = 0.0f;
+    engine.scenes().load(std::make_unique<CubeScene>());
 
     auto resizeRenderer = window->events().onResize(
-        [&renderer](const OctalEngine::WindowResized& event) {
-            renderer.resize(event.width, event.height);
-        });
-
-    auto renderCube = engine.events().engine().subscribe<OctalEngine::Update>(
-        [&renderer, &cube, &rotation](const OctalEngine::Update& update) {
-        rotation += update.dt;
-        renderer.beginFrame();
-        renderer.drawMesh(cube, OctalEngine::Mat4::rotationY(rotation));
-        renderer.endFrame();
+        [&engine](const OctalEngine::WindowResized& event) {
+            engine.resizeRenderer(event.width, event.height);
         });
 
     engine.run();

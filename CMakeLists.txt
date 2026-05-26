@@ -40,12 +40,16 @@ add_library(OctalEngine::OctalEngine ALIAS OctalEngine)
 target_include_directories(OctalEngine PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/engine/core>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/engine/input>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/engine/platform>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/engine/renderer>
     $<INSTALL_INTERFACE:include/OctalEngine/core>
     $<INSTALL_INTERFACE:include/OctalEngine/input>
+    $<INSTALL_INTERFACE:include/OctalEngine/renderer>
 )
 
 target_include_directories(OctalEngine PUBLIC
-    ${CMAKE_SOURCE_DIR}/third_party/entt
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/third_party/entt>
+    $<INSTALL_INTERFACE:include/OctalEngine/third_party/entt>
 )
 
 # -----------------------------
@@ -89,6 +93,10 @@ target_link_libraries(OctalEngineRenderer
 target_compile_definitions(OctalEngineRenderer PRIVATE
     OCTAL_BGFX_SHADER_DIR="${CMAKE_CURRENT_SOURCE_DIR}/third_party/bgfx/shaders"
     BX_CONFIG_DEBUG=0
+)
+
+target_link_libraries(OctalEngine
+    PUBLIC OctalEngineRenderer
 )
 
 # -----------------------------
@@ -173,6 +181,11 @@ install(TARGETS ${EXPORT_TARGETS}
 install(DIRECTORY engine/core/
     DESTINATION include/OctalEngine/core
     FILES_MATCHING PATTERN "*.h"
+)
+
+install(DIRECTORY third_party/entt/
+    DESTINATION include/OctalEngine/third_party/entt
+    FILES_MATCHING PATTERN "*.hpp"
 )
 
 install(DIRECTORY engine/input/

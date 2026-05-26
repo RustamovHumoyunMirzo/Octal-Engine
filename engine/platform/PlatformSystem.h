@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Engine.h"
 #include "Platform.h"
 #include "Window.h"
 
@@ -31,6 +32,8 @@ namespace OctalEngine
 
         bool quitWhenLastWindowClosed() const;
         void setQuitWhenLastWindowClosed(bool enabled);
+
+        static WindowedMode windowedModeFor(Window& window);
 
     private:
         void pruneClosedWindows();

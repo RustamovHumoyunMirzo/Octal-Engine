@@ -6,6 +6,26 @@ First version: 0.0.1
 0.1.0-gamma
 
 - Integrated EnTT into the CMake.
+- Added Scene, SceneManager, and Object APIs backed by per-scene EnTT worlds.
+- Added Engine::scenes() and GameLoop-owned scene management on the main loop.
+- Added default Transform, Camera, MeshRenderer, and Light components.
+- Added primary camera storage per scene.
+- Added parent/child object hierarchy with relative world transform evaluation.
+- Added transform-required component skipping for cameras, mesh renderers, and
+  lights when an object has no transform.
+- Added scene lifecycle and object events on EventWorld::scene().
+- Added internal scene rendering from visible MeshRendererComponent objects.
+- Added RenderCamera submission and primary-camera usage for scene rendering.
+- Added EngineConfig::renderScenes, Engine::renderer(), and
+  Engine::resizeRenderer().
+- Added PlatformSystem::windowedModeFor() to populate windowed renderer setup
+  from a platform window.
+- Updated the cube rendering example to render a scene object instead of
+  manually submitting render commands.
+- Added support for user-defined components through the public Object and Scene
+  component API while keeping ECS registry/entity details out of public
+  signatures.
+- Added scene management public API documentation.
 - Added get_entt.ps1 script to automate EnTT download.
 - Added new third-party library dependency: EnTT.
 - Added public RendererType enum with support for Auto, Direct3D11, Direct3D12,

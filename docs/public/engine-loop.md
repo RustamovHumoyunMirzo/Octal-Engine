@@ -13,7 +13,7 @@ while (running)
     float dt = time.step();
 
     events.engine().emit<Update>({dt});
-    loop.update(dt);
+    loop.update(events, dt);
     events.flush();
 }
 ```
@@ -35,7 +35,7 @@ Use `HeadlessMode` when the engine should update without a window. Use
 
 ```cpp
 OctalEngine::EngineConfig config;
-config.mode = OctalEngine::WindowedMode{window.get()};
+config.mode = OctalEngine::PlatformSystem::windowedModeFor(*window);
 
 OctalEngine::Engine engine(platform, config);
 ```
@@ -48,7 +48,7 @@ runs normally.
 
 ## Frame Delta Time
 
-`Time::step()` returns the delta time passed into `GameLoop::update(float dt)`.
+`Time::step()` returns the delta time passed into `GameLoop::update(events, dt)`.
 At the moment, this value is fixed at `1.0f / 60.0f`.
 
 Because timing is currently fixed, users should treat `dt` as a frame-duration
@@ -58,18 +58,22 @@ hint rather than a measured wall-clock value.
 
 Each frame calls:
 
-1. `GameLoop::update(dt)`
-2. `GameLoop::render()`
+1. `events.engine().emit(Update{dt})`
+2. `GameLoop::update(events, dt)`
+3. Internal scene rendering, when enabled
+4. `events.flush()`
 
-Use `update(dt)` for simulation and gameplay state changes. Rendering is exposed
-through `OctalEngine::Renderer`, which records user-issued draw commands between
-`beginFrame()` and `endFrame()` and submits them to a render thread. User code
-should submit those commands from engine-driven work, such as an update event,
-while `Engine::run()` remains the owner of the frame loop.
+Use update events and active scenes for simulation and gameplay state changes.
+Rendering is exposed through `OctalEngine::Renderer`, which records user-issued
+draw commands between `beginFrame()` and `endFrame()` and submits them to a
+render thread. User code should submit those commands from engine-driven work,
+such as an update event, while `Engine::run()` remains the owner of the frame
+loop. For normal scene objects, add `MeshRendererComponent` and let the engine
+render the active scene internally.
 
-`GameLoop::update(dt)` also advances input frame state through
-`InputManager::updateFrame(dt)`, after platform events have been pumped and
-gameplay has had a chance to read action transitions.
+`GameLoop::update(events, dt)` advances input frame state through
+`InputManager::updateFrame(dt)` and updates the `SceneManager` on the main
+thread.
 
 ## Engine Update Event
 
@@ -82,14 +86,12 @@ OctalEngine::Subscription sub = engine.events().engine().subscribe<OctalEngine::
     });
 ```
 
-Deferred events queued during a frame are flushed after the current placeholder
-render step.
+Deferred events queued during a frame are flushed after the game-loop update.
 
 ## Stopping The Loop
 
 `Engine::stop()` changes the engine's internal running flag to `false`.
 `Engine::run()` checks that flag at the start of each loop iteration.
 
-The current public API does not yet expose callbacks, scenes, input dispatch, or
-an event system. Code that needs to stop the engine must have access to the
-running `Engine` instance.
+Code that needs to stop the engine must have access to the running `Engine`
+instance.

@@ -83,6 +83,19 @@ struct Update
 };
 ```
 
-`Engine::run()` emits `Update` on the engine bus each frame before the current
-placeholder `GameLoop::update(dt)` call. The engine flushes deferred events once
-per frame after the current placeholder render step.
+`Engine::run()` emits `Update` on the engine bus each frame before
+`GameLoop::update(events, dt)`. Scene lifecycle and object events are emitted on
+the scene bus, and the engine flushes deferred events once per frame after the
+game-loop update.
+
+Scene events:
+
+```cpp
+SceneLoaded
+SceneUnloaded
+SceneActivated
+SceneDeactivated
+SceneUpdated
+ObjectCreated
+ObjectDestroyed
+```

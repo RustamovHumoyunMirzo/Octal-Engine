@@ -6,7 +6,7 @@ Header:
 #include "Engine.h"
 ```
 
-`Engine` owns the main engine loop. It creates the loop support objects,
+`Engine` owns the main engine loop. It owns the loop support objects,
 optionally pumps a platform supplied at construction, and repeats update/render
 frames while the engine is running.
 
@@ -20,6 +20,9 @@ struct HeadlessMode
 struct WindowedMode
 {
     Window* window = nullptr;
+    void* nativeWindowHandle = nullptr;
+    int width = 1280;
+    int height = 720;
 };
 
 using RuntimeMode = std::variant<HeadlessMode, WindowedMode>;
@@ -27,12 +30,15 @@ using RuntimeMode = std::variant<HeadlessMode, WindowedMode>;
 struct EngineConfig
 {
     RuntimeMode mode = HeadlessMode{};
+    bool renderScenes = true;
 };
 ```
 
 `EngineConfig::mode` is a runtime variant. Use `HeadlessMode` for simulations,
 tests, tools, or server-like workloads that do not need a window. Use
 `WindowedMode` when the engine should run with an existing platform window.
+When `nativeWindowHandle` is set, the engine creates an internal renderer for
+scene objects.
 
 The engine does not create windows itself and does not require a window to run.
 
@@ -61,10 +67,13 @@ Use `Engine(platform, config)` when the engine should pump platform events:
 
 ```cpp
 OctalEngine::EngineConfig config;
-config.mode = OctalEngine::WindowedMode{window.get()};
+config.mode = OctalEngine::PlatformSystem::windowedModeFor(*window);
 
 OctalEngine::Engine engine(platform, config);
 ```
+
+Set `renderScenes` to `false` when a game wants to take full responsibility for
+custom rendering.
 
 ## Destructor
 
@@ -88,13 +97,12 @@ Current behavior:
 - Pumps the constructor-injected platform if one is present.
 - Stops before update/render when the platform requests quit.
 - Creates a local `OctalEngine::Time`.
-- Creates a local `OctalEngine::GameLoop`.
 - Repeats while the engine is running.
 - Calls `Time::step()` once per frame.
 - Emits `Update{dt}` on the engine event bus.
-- Calls `GameLoop::update(dt)` with the returned delta time.
-- Calls `GameLoop::render()` after update.
-- Flushes deferred events after render.
+- Calls `GameLoop::update(events, dt)` with the returned delta time.
+- Internally renders visible scene objects when scene rendering is enabled.
+- Flushes deferred events after the game-loop update.
 
 `run()` blocks until the engine is stopped.
 
@@ -151,3 +159,35 @@ OctalEngine::Subscription sub = engine.events().engine().subscribe<OctalEngine::
         printf("%f", e.dt);
     });
 ```
+
+## `scenes`
+
+```cpp
+SceneManager& scenes();
+const SceneManager& scenes() const;
+```
+
+Returns the scene manager owned by the engine's game loop:
+
+```cpp
+engine.scenes().load(std::make_unique<OctalEngine::Scene>("Level01"));
+```
+
+## `renderer`
+
+```cpp
+Renderer* renderer();
+const Renderer* renderer() const;
+```
+
+Returns the internal scene renderer after it has been initialized. This can be
+`nullptr` before the first rendered frame or when scene rendering is disabled.
+
+## `resizeRenderer`
+
+```cpp
+void resizeRenderer(int width, int height);
+```
+
+Resizes the internal renderer. Windowed apps should call this from the window
+resize event.

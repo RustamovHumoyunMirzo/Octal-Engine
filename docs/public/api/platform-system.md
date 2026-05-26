@@ -49,10 +49,19 @@ window->setSize(1280, 720);
 window->setResizable(true);
 
 OctalEngine::EngineConfig config;
-config.mode = OctalEngine::WindowedMode{window.get()};
+config.mode = OctalEngine::PlatformSystem::windowedModeFor(*window);
 
 OctalEngine::Engine engine(platform, config);
 ```
+
+## `windowedModeFor`
+
+```cpp
+static WindowedMode windowedModeFor(Window& window);
+```
+
+Creates a `WindowedMode` populated with the window pointer, native handle, and
+current size so the engine can initialize its internal scene renderer.
 
 ## Window Management
 

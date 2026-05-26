@@ -324,6 +324,12 @@ namespace OctalEngine
         quitOnLastWindowClosed = enabled;
     }
 
+    WindowedMode PlatformSystem::windowedModeFor(Window& window)
+    {
+        const WindowSize size = window.size();
+        return WindowedMode{&window, window.nativeHandle(), size.width, size.height};
+    }
+
     void PlatformSystem::pruneClosedWindows()
     {
         windows.erase(

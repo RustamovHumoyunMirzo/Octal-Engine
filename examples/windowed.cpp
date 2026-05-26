@@ -15,9 +15,14 @@ int main()
     auto window = platform.createWindow(windowDescriptor);
 
     OctalEngine::EngineConfig config;
-    config.mode = OctalEngine::WindowedMode{window.get()};
+    config.mode = OctalEngine::PlatformSystem::windowedModeFor(*window);
 
     OctalEngine::Engine engine(platform, config);
+
+    auto resizeRenderer = window->events().onResize(
+        [&engine](const OctalEngine::WindowResized& event) {
+            engine.resizeRenderer(event.width, event.height);
+        });
 
     engine.run();
 }

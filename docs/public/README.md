@@ -1,8 +1,8 @@
 # Octal Engine Public Documentation
 
 Octal Engine is an early-stage C++20 game engine library. The public API is
-currently small and centered around starting the engine loop, stepping time, and
-submitting explicit renderer commands.
+currently small and centered around starting the engine loop, scene/object
+management, stepping time, and submitting explicit renderer commands.
 
 These docs are written for people using the engine from their own C++ code.
 Internal design notes live in [`../internal`](../internal/).
@@ -41,6 +41,7 @@ All public engine classes currently live in the `OctalEngine` namespace.
 | `Platform.h` | `OctalEngine::Platform` | Optional event-pumping interface for integrations. |
 | `EngineTime.h` | `OctalEngine::Time` | Produces the frame delta time used by the loop. |
 | `Loop.h` | `OctalEngine::GameLoop` | Provides update and render steps called each frame. |
+| `Scene.h` | `OctalEngine::Scene`, `OctalEngine::SceneManager`, `OctalEngine::Object` | Scene worlds, ECS components, hierarchy, and scene events. |
 | `InputManager.h` | `OctalEngine::InputManager` | Action-based input, contexts, rebinding, and raw input access. |
 | `JobSystem.h` | `OctalEngine::JobSystem` | Dispatches work to a small thread pool. |
 | `Renderer.h` | `OctalEngine::Renderer`, `OctalEngine::Mesh` | Submits mesh and vertex draw commands to the render thread. |
@@ -88,11 +89,11 @@ int main()
     auto window = platform.createWindow(windowDescriptor);
 
     OctalEngine::EngineConfig config;
-    config.mode = OctalEngine::WindowedMode{window.get()};
+    config.mode = OctalEngine::PlatformSystem::windowedModeFor(*window);
 
     OctalEngine::Engine engine(platform, config);
 
-engine.run();
+    engine.run();
 }
 ```
 

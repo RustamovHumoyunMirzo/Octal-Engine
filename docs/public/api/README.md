@@ -11,6 +11,7 @@ All public classes are in the `OctalEngine` namespace.
 - [`Time`](time.md) - returns frame delta time values.
 - [`GameLoop`](game-loop.md) - update and render operations called by the engine.
 - [`InputManager`](input.md) - action-based keyboard, mouse, gamepad, and touch input.
+- [`Scene Management`](scene.md) - scenes, objects, ECS components, hierarchy, and scene events.
 - [`JobSystem`](jobs.md) - lightweight thread pool and job dispatch API.
 - [`PlatformSystem`](platform-system.md) - platform implementation and window manager.
 - [`Renderer`](renderer.md) - render facade, mesh submission, and headless command execution.
@@ -25,6 +26,7 @@ All public classes are in the `OctalEngine` namespace.
 #include "EngineTime.h"
 #include "Loop.h"
 #include "InputManager.h"
+#include "Scene.h"
 #include "JobSystem.h"
 #include "PlatformSystem.h"
 #include "Renderer.h"

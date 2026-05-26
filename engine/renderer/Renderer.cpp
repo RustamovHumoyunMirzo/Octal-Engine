@@ -149,14 +149,24 @@ namespace OctalEngine
         impl->frameOpen = true;
     }
 
-    void Renderer::drawMesh(const Mesh& mesh, const Mat4& transform)
+    void Renderer::setCamera(const RenderCamera& camera)
+    {
+        if (!impl->frameOpen)
+        {
+            return;
+        }
+
+        impl->writeBuffer.commands.emplace_back(RendererInternal::SetCameraCommand{camera});
+    }
+
+    void Renderer::drawMesh(const Mesh& mesh, const Mat4& transform, const RenderColor& color)
     {
         if (!impl->frameOpen || mesh.empty())
         {
             return;
         }
 
-        impl->writeBuffer.commands.emplace_back(RendererInternal::DrawMeshCommand{mesh, transform});
+        impl->writeBuffer.commands.emplace_back(RendererInternal::DrawMeshCommand{mesh, transform, color});
     }
 
     void Renderer::drawVertices(std::span<const Vertex> vertices, const Mat4& transform)

@@ -32,6 +32,31 @@ namespace OctalEngine
         RendererType rendererType = RendererType::Auto;  ///< Renderer API to use, defaults to auto selection
     };
 
+    struct RenderCamera
+    {
+        float eyeX = 0.0f;
+        float eyeY = 0.0f;
+        float eyeZ = -6.0f;
+        float targetX = 0.0f;
+        float targetY = 0.0f;
+        float targetZ = 0.0f;
+        float upX = 0.0f;
+        float upY = 1.0f;
+        float upZ = 0.0f;
+        float fov = 60.0f;
+        float nearPlane = 0.1f;
+        float farPlane = 1000.0f;
+        bool isOrthographic = false;
+    };
+
+    struct RenderColor
+    {
+        float r = 1.0f;
+        float g = 1.0f;
+        float b = 1.0f;
+        float a = 1.0f;
+    };
+
     class Renderer
     {
     public:
@@ -49,7 +74,8 @@ namespace OctalEngine
         void shutdown();
 
         void beginFrame();
-        void drawMesh(const Mesh& mesh, const Mat4& transform = Mat4::identity());
+        void setCamera(const RenderCamera& camera);
+        void drawMesh(const Mesh& mesh, const Mat4& transform = Mat4::identity(), const RenderColor& color = {});
         void drawVertices(std::span<const Vertex> vertices, const Mat4& transform = Mat4::identity());
         void drawVertices(const std::vector<Vertex>& vertices, const Mat4& transform = Mat4::identity());
         void resize(int width, int height);

@@ -2,6 +2,7 @@
 
 #include "../RendererMath.h"
 #include "../Mesh.h"
+#include "../Renderer.h"
 
 #include <variant>
 #include <vector>
@@ -13,6 +14,7 @@ namespace OctalEngine::RendererInternal
         DrawMesh,
         DrawVertices,
         SetTransform,
+        SetCamera,
         Resize
     };
 
@@ -20,6 +22,7 @@ namespace OctalEngine::RendererInternal
     {
         Mesh mesh;
         Mat4 transform;
+        RenderColor color;
     };
 
     struct DrawVerticesCommand
@@ -33,13 +36,18 @@ namespace OctalEngine::RendererInternal
         Mat4 transform;
     };
 
+    struct SetCameraCommand
+    {
+        RenderCamera camera;
+    };
+
     struct ResizeCommand
     {
         int width = 1;
         int height = 1;
     };
 
-    using RenderCommand = std::variant<DrawMeshCommand, DrawVerticesCommand, SetTransformCommand, ResizeCommand>;
+    using RenderCommand = std::variant<DrawMeshCommand, DrawVerticesCommand, SetTransformCommand, SetCameraCommand, ResizeCommand>;
 
     struct CommandBuffer
     {

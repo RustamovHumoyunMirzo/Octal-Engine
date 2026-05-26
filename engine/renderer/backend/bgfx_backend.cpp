@@ -113,42 +113,80 @@ namespace OctalEngine::RendererBackend
                    static_cast<std::uint32_t>(r);
         }
 
-        GpuVertex toGpuVertex(const Vertex& vertex)
+        std::uint8_t colorToByte(float value)
+        {
+            const float clamped = value < 0.0f ? 0.0f : (value > 1.0f ? 1.0f : value);
+            return static_cast<std::uint8_t>(clamped * 255.0f);
+        }
+
+        GpuVertex toGpuVertex(const Vertex& vertex, const RenderColor& color)
         {
             return {
                 vertex.x,
                 vertex.y,
                 vertex.z,
-                packAbgr(normalToColor(vertex.x), normalToColor(vertex.y), normalToColor(vertex.z))};
+                packAbgr(colorToByte(color.r), colorToByte(color.g), colorToByte(color.b), colorToByte(color.a))};
         }
 
-        std::vector<GpuVertex> toGpuVertices(const std::vector<Vertex>& vertices)
+        std::vector<GpuVertex> toGpuVertices(const std::vector<Vertex>& vertices, const RenderColor& color)
         {
             std::vector<GpuVertex> result;
             result.reserve(vertices.size());
 
             for (const Vertex& vertex : vertices)
             {
-                result.push_back(toGpuVertex(vertex));
+                result.push_back(toGpuVertex(vertex, color));
             }
 
             return result;
         }
 
-        void setDefaultCamera(float aspect)
+        RenderCamera defaultCamera()
+        {
+            return {};
+        }
+
+        void setCamera(const RenderCamera& camera, float aspect)
         {
             if (aspect <= 0.0f)
             {
                 aspect = 1.0f;
             }
 
-            const bx::Vec3 eye = {0.0f, 0.0f, -6.0f};
-            const bx::Vec3 at = {0.0f, 0.0f, 0.0f};
+            const bx::Vec3 eye = {camera.eyeX, camera.eyeY, camera.eyeZ};
+            const bx::Vec3 at = {camera.targetX, camera.targetY, camera.targetZ};
+            const bx::Vec3 up = {camera.upX, camera.upY, camera.upZ};
 
             float view[16];
             float projection[16];
-            bx::mtxLookAt(view, eye, at);
-            bx::mtxProj(projection, 60.0f, aspect, 0.1f, 100.0f, bgfx::getCaps()->homogeneousDepth);
+            bx::mtxLookAt(view, eye, at, up);
+
+            if (camera.isOrthographic)
+            {
+                const float height = camera.fov > 0.0f ? camera.fov : 10.0f;
+                const float width = height * aspect;
+                bx::mtxOrtho(
+                    projection,
+                    -width * 0.5f,
+                    width * 0.5f,
+                    -height * 0.5f,
+                    height * 0.5f,
+                    camera.nearPlane,
+                    camera.farPlane,
+                    0.0f,
+                    bgfx::getCaps()->homogeneousDepth);
+            }
+            else
+            {
+                bx::mtxProj(
+                    projection,
+                    camera.fov,
+                    aspect,
+                    camera.nearPlane,
+                    camera.farPlane,
+                    bgfx::getCaps()->homogeneousDepth);
+            }
+
             bgfx::setViewTransform(0, view, projection);
         }
 
@@ -224,11 +262,14 @@ namespace OctalEngine::RendererBackend
         std::uint16_t width = 1280;
         std::uint16_t height = 720;
         RendererType actualRendererType = RendererType::Auto;
+        RenderCamera camera{};
         std::unordered_map<std::uint64_t, GpuMesh> meshes;
 
-        GpuMesh& uploadMesh(const Mesh& mesh)
+        GpuMesh& uploadMesh(const Mesh& mesh, const RenderColor& color = {})
         {
-            auto found = meshes.find(mesh.id());
+            const std::uint32_t packedColor = packAbgr(colorToByte(color.r), colorToByte(color.g), colorToByte(color.b), colorToByte(color.a));
+            const std::uint64_t meshKey = (mesh.id() << 32) ^ packedColor;
+            auto found = meshes.find(meshKey);
             if (found != meshes.end())
             {
                 return found->second;
@@ -238,7 +279,7 @@ namespace OctalEngine::RendererBackend
             gpuMesh.vertexCount = static_cast<std::uint32_t>(mesh.vertices().size());
             gpuMesh.indexCount = static_cast<std::uint32_t>(mesh.indices().size());
 
-            const std::vector<GpuVertex> gpuVertices = toGpuVertices(mesh.vertices());
+            const std::vector<GpuVertex> gpuVertices = toGpuVertices(mesh.vertices(), color);
             const bgfx::Memory* vertexMemory = bgfx::copy(gpuVertices.data(),
                                                           static_cast<std::uint32_t>(gpuVertices.size() * sizeof(GpuVertex)));
             gpuMesh.vertexBuffer = bgfx::createVertexBuffer(vertexMemory, vertexLayout);
@@ -250,7 +291,7 @@ namespace OctalEngine::RendererBackend
                 gpuMesh.indexBuffer = bgfx::createIndexBuffer(indexMemory);
             }
 
-            auto [inserted, _] = meshes.emplace(mesh.id(), gpuMesh);
+            auto [inserted, _] = meshes.emplace(meshKey, gpuMesh);
             return inserted->second;
         }
 
@@ -353,7 +394,8 @@ namespace OctalEngine::RendererBackend
         impl->vertexLayout = makeVertexLayout();
         bgfx::setViewClear(0, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 0x101820ff, 1.0f, 0);
         bgfx::setViewRect(0, 0, 0, impl->width, impl->height);
-        setDefaultCamera(static_cast<float>(impl->width) / static_cast<float>(impl->height));
+        impl->camera = defaultCamera();
+        setCamera(impl->camera, static_cast<float>(impl->width) / static_cast<float>(impl->height));
 
         if (!impl->createDefaultProgram())
         {
@@ -400,7 +442,7 @@ namespace OctalEngine::RendererBackend
 
         bgfx::touch(0);
         bgfx::setViewRect(0, 0, 0, impl->width, impl->height);
-        setDefaultCamera(static_cast<float>(impl->width) / static_cast<float>(impl->height));
+        setCamera(impl->camera, static_cast<float>(impl->width) / static_cast<float>(impl->height));
 
         for (const auto& command : commandBuffer.commands)
         {
@@ -409,7 +451,7 @@ namespace OctalEngine::RendererBackend
 
                 if constexpr (std::is_same_v<Command, RendererInternal::DrawMeshCommand>)
                 {
-                    Impl::GpuMesh& mesh = impl->uploadMesh(concreteCommand.mesh);
+                    Impl::GpuMesh& mesh = impl->uploadMesh(concreteCommand.mesh, concreteCommand.color);
                     bgfx::setTransform(concreteCommand.transform.values.data());
                     bgfx::setVertexBuffer(0, mesh.vertexBuffer);
 
@@ -431,7 +473,7 @@ namespace OctalEngine::RendererBackend
                         return;
                     }
 
-                    const std::vector<GpuVertex> gpuVertices = toGpuVertices(concreteCommand.vertices);
+                    const std::vector<GpuVertex> gpuVertices = toGpuVertices(concreteCommand.vertices, {});
                     const bgfx::Memory* memory = bgfx::copy(gpuVertices.data(),
                                                             static_cast<std::uint32_t>(gpuVertices.size() * sizeof(GpuVertex)));
                     bgfx::VertexBufferHandle vertexBuffer = bgfx::createVertexBuffer(memory, impl->vertexLayout);
@@ -447,6 +489,11 @@ namespace OctalEngine::RendererBackend
                 else if constexpr (std::is_same_v<Command, RendererInternal::SetTransformCommand>)
                 {
                     bgfx::setTransform(concreteCommand.transform.values.data());
+                }
+                else if constexpr (std::is_same_v<Command, RendererInternal::SetCameraCommand>)
+                {
+                    impl->camera = concreteCommand.camera;
+                    setCamera(impl->camera, static_cast<float>(impl->width) / static_cast<float>(impl->height));
                 }
                 else if constexpr (std::is_same_v<Command, RendererInternal::ResizeCommand>)
                 {
