@@ -65,14 +65,22 @@ namespace OctalEngine
         Plane,
         Capsule,
         Cylinder,
-        Custom,
+        Custom, // For future use when we implement mesh loading
+    };
+
+    struct MeshGeometry : Component
+    {
+        PrimitiveType primitive = PrimitiveType::Cube;
+        // for future: AssetHandle mesh; // if primitive is Custom
     };
 
     struct MeshRendererComponent : Component
     {
-        PrimitiveType primitive = PrimitiveType::Cube;
         bool visible = true;
         bool castShadows = true;
+        bool receiveShadows = true;
+        int sortingOrder = 0;
+        uint32_t renderLayer = 0;
     };
 
     enum class LightType
@@ -118,27 +126,27 @@ namespace OctalEngine
 
     struct SceneLoaded
     {
-        Scene* scene = nullptr;
+        Scene *scene = nullptr;
     };
 
     struct SceneUnloaded
     {
-        Scene* scene = nullptr;
+        Scene *scene = nullptr;
     };
 
     struct SceneActivated
     {
-        Scene* scene = nullptr;
+        Scene *scene = nullptr;
     };
 
     struct SceneDeactivated
     {
-        Scene* scene = nullptr;
+        Scene *scene = nullptr;
     };
 
     struct SceneUpdated
     {
-        Scene* scene = nullptr;
+        Scene *scene = nullptr;
         float dt = 0.0f;
     };
 
@@ -150,20 +158,20 @@ namespace OctalEngine
 
         bool valid() const;
         std::uint32_t id() const;
-        Scene* scene();
-        const Scene* scene() const;
+        Scene *scene();
+        const Scene *scene() const;
 
         void setName(std::string name);
         std::string_view name() const;
 
         template <typename T, typename... Args>
-        T* addComponent(Args&&... args);
+        T *addComponent(Args &&...args);
 
         template <typename T>
-        T* getComponent();
+        T *getComponent();
 
         template <typename T>
-        const T* getComponent() const;
+        const T *getComponent() const;
 
         template <typename T>
         bool hasComponent() const;
@@ -171,7 +179,7 @@ namespace OctalEngine
         template <typename T>
         bool removeComponent();
 
-        void setParent(const Object& parent);
+        void setParent(const Object &parent);
         void clearParent();
         Object parent() const;
         std::vector<Object> children() const;
@@ -179,28 +187,28 @@ namespace OctalEngine
         TransformComponent worldTransform() const;
         Vec3 forward() const;
 
-        bool operator==(const Object& other) const;
-        bool operator!=(const Object& other) const;
+        bool operator==(const Object &other) const;
+        bool operator!=(const Object &other) const;
 
     protected:
-        Object(Scene* scene, std::uint32_t id);
+        Object(Scene *scene, std::uint32_t id);
 
     private:
         friend class Scene;
 
-        Scene* owningScene = nullptr;
+        Scene *owningScene = nullptr;
         std::uint32_t objectId = 0;
     };
 
     struct ObjectCreated
     {
-        Scene* scene = nullptr;
+        Scene *scene = nullptr;
         Object object;
     };
 
     struct ObjectDestroyed
     {
-        Scene* scene = nullptr;
+        Scene *scene = nullptr;
         std::uint32_t objectId = 0;
     };
 
@@ -210,52 +218,52 @@ namespace OctalEngine
         explicit Scene(std::string name = {});
         virtual ~Scene();
 
-        Scene(const Scene&) = delete;
-        Scene& operator=(const Scene&) = delete;
-        Scene(Scene&&) noexcept;
-        Scene& operator=(Scene&&) noexcept;
+        Scene(const Scene &) = delete;
+        Scene &operator=(const Scene &) = delete;
+        Scene(Scene &&) noexcept;
+        Scene &operator=(Scene &&) noexcept;
 
         std::string_view name() const;
         void setName(std::string name);
 
         Object createObject(std::string name = {});
-        void destroyObject(const Object& object);
-        bool isValid(const Object& object) const;
+        void destroyObject(const Object &object);
+        bool isValid(const Object &object) const;
 
-        void setPrimaryCamera(const Object& object);
+        void setPrimaryCamera(const Object &object);
         Object primaryCamera() const;
         bool hasPrimaryCamera() const;
 
-        void setParent(const Object& child, const Object& parent);
-        void clearParent(const Object& child);
-        Object parentOf(const Object& child) const;
-        std::vector<Object> childrenOf(const Object& object) const;
-        TransformComponent worldTransformOf(const Object& object) const;
-        Vec3 forwardOf(const Object& object) const;
+        void setParent(const Object &child, const Object &parent);
+        void clearParent(const Object &child);
+        Object parentOf(const Object &child) const;
+        std::vector<Object> childrenOf(const Object &object) const;
+        TransformComponent worldTransformOf(const Object &object) const;
+        Vec3 forwardOf(const Object &object) const;
 
         template <typename T, typename... Args>
-        T* addComponent(const Object& object, Args&&... args);
+        T *addComponent(const Object &object, Args &&...args);
 
         template <typename T>
-        T* getComponent(const Object& object);
+        T *getComponent(const Object &object);
 
         template <typename T>
-        const T* getComponent(const Object& object) const;
+        const T *getComponent(const Object &object) const;
 
         template <typename T>
-        bool hasComponent(const Object& object) const;
+        bool hasComponent(const Object &object) const;
 
         template <typename T>
-        bool removeComponent(const Object& object);
+        bool removeComponent(const Object &object);
 
         template <typename... Components, typename Callback>
-        void each(Callback&& callback);
+        void each(Callback &&callback);
 
         template <typename... Components, typename Callback>
-        void each(Callback&& callback) const;
+        void each(Callback &&callback) const;
 
-        EventBus* events();
-        const EventBus* events() const;
+        EventBus *events();
+        const EventBus *events() const;
 
     protected:
         virtual void onLoad() {}
@@ -269,10 +277,10 @@ namespace OctalEngine
         struct Relationship;
         struct Name;
 
-        entt::entity entityFor(const Object& object) const;
+        entt::entity entityFor(const Object &object) const;
         Object objectFor(entt::entity entity);
         Object objectFor(entt::entity entity) const;
-        void attachEvents(EventBus* events);
+        void attachEvents(EventBus *events);
         void load();
         void unload();
         void update(float dt);
@@ -283,7 +291,7 @@ namespace OctalEngine
 
         std::string sceneName;
         std::unique_ptr<entt::registry> registry;
-        EventBus* sceneEvents = nullptr;
+        EventBus *sceneEvents = nullptr;
         entt::entity primaryCameraEntity = entt::null;
         std::thread::id owningThread;
     };
@@ -294,22 +302,22 @@ namespace OctalEngine
         SceneManager();
         virtual ~SceneManager() = default;
 
-        SceneManager(const SceneManager&) = delete;
-        SceneManager& operator=(const SceneManager&) = delete;
+        SceneManager(const SceneManager &) = delete;
+        SceneManager &operator=(const SceneManager &) = delete;
 
-        void setEventWorld(EventWorld* events);
-        EventWorld* eventWorld();
+        void setEventWorld(EventWorld *events);
+        EventWorld *eventWorld();
 
         void load(std::unique_ptr<Scene> scene);
         void unload();
         void update(float dt);
 
-        Scene* currentScene();
-        const Scene* currentScene() const;
+        Scene *currentScene();
+        const Scene *currentScene() const;
         bool hasScene() const;
 
     protected:
-        virtual void onSceneChanged(Scene*) {}
+        virtual void onSceneChanged(Scene *) {}
 
     private:
         void ensureMainThread() const;
@@ -318,24 +326,24 @@ namespace OctalEngine
         std::unique_ptr<Scene> activeScene;
         std::unique_ptr<Scene> pendingScene;
         bool unloadRequested = false;
-        EventWorld* events = nullptr;
+        EventWorld *events = nullptr;
         std::thread::id owningThread;
     };
 
     template <typename T, typename... Args>
-    T* Object::addComponent(Args&&... args)
+    T *Object::addComponent(Args &&...args)
     {
         return owningScene != nullptr ? owningScene->addComponent<T>(*this, std::forward<Args>(args)...) : nullptr;
     }
 
     template <typename T>
-    T* Object::getComponent()
+    T *Object::getComponent()
     {
         return owningScene != nullptr ? owningScene->getComponent<T>(*this) : nullptr;
     }
 
     template <typename T>
-    const T* Object::getComponent() const
+    const T *Object::getComponent() const
     {
         return owningScene != nullptr ? owningScene->getComponent<T>(*this) : nullptr;
     }
@@ -353,7 +361,7 @@ namespace OctalEngine
     }
 
     template <typename T, typename... Args>
-    T* Scene::addComponent(const Object& object, Args&&... args)
+    T *Scene::addComponent(const Object &object, Args &&...args)
     {
         ensureMainThread();
 
@@ -374,7 +382,7 @@ namespace OctalEngine
     }
 
     template <typename T>
-    T* Scene::getComponent(const Object& object)
+    T *Scene::getComponent(const Object &object)
     {
         ensureMainThread();
 
@@ -387,7 +395,7 @@ namespace OctalEngine
     }
 
     template <typename T>
-    const T* Scene::getComponent(const Object& object) const
+    const T *Scene::getComponent(const Object &object) const
     {
         ensureMainThread();
 
@@ -400,14 +408,14 @@ namespace OctalEngine
     }
 
     template <typename T>
-    bool Scene::hasComponent(const Object& object) const
+    bool Scene::hasComponent(const Object &object) const
     {
         ensureMainThread();
         return isValid(object) && registry->all_of<T>(entityFor(object));
     }
 
     template <typename T>
-    bool Scene::removeComponent(const Object& object)
+    bool Scene::removeComponent(const Object &object)
     {
         ensureMainThread();
 
@@ -430,7 +438,7 @@ namespace OctalEngine
     }
 
     template <typename... Components, typename Callback>
-    void Scene::each(Callback&& callback)
+    void Scene::each(Callback &&callback)
     {
         ensureMainThread();
 
@@ -438,7 +446,8 @@ namespace OctalEngine
         for (const entt::entity entity : view)
         {
             std::apply(
-                [&](auto&... components) {
+                [&](auto &...components)
+                {
                     callback(objectFor(entity), components...);
                 },
                 view.get(entity));
@@ -446,7 +455,7 @@ namespace OctalEngine
     }
 
     template <typename... Components, typename Callback>
-    void Scene::each(Callback&& callback) const
+    void Scene::each(Callback &&callback) const
     {
         ensureMainThread();
 
@@ -454,7 +463,8 @@ namespace OctalEngine
         for (const entt::entity entity : view)
         {
             std::apply(
-                [&](const auto&... components) {
+                [&](const auto &...components)
+                {
                     callback(objectFor(entity), components...);
                 },
                 view.get(entity));

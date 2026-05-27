@@ -24,6 +24,7 @@ private:
 
         OctalEngine::Object cube = createObject("Cube");
         cube.addComponent<OctalEngine::TransformComponent>();
+        cube.addComponent<OctalEngine::MeshGeometry>();
         cube.addComponent<OctalEngine::MeshRendererComponent>();
     }
 };

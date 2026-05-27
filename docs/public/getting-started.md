@@ -42,7 +42,7 @@ After building, run the generated sandbox executable from your build directory.
 The exact path can vary by CMake generator and build configuration.
 
 The current sandbox exercises the scene API. Windowed scene objects with
-`MeshRendererComponent` are rendered internally by `Engine`.
+`MeshGeometry` and `MeshRendererComponent` are rendered internally by `Engine`.
 
 ```cpp
 #include "Engine.h"
@@ -67,6 +67,7 @@ int main()
 
     OctalEngine::Object cube = scene->createObject("Cube");
     cube.addComponent<OctalEngine::TransformComponent>();
+    cube.addComponent<OctalEngine::MeshGeometry>();
     cube.addComponent<OctalEngine::MeshRendererComponent>();
 
     engine.scenes().load(std::move(scene));

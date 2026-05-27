@@ -5,6 +5,7 @@
 #include "Platform.h"
 #include "Renderer.h"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdint>
@@ -415,24 +416,42 @@ namespace OctalEngine
             Object object;
             const Mesh* mesh = nullptr;
             bool castShadows = false;
+            bool receiveShadows = true;
+            int sortingOrder = 0;
+            uint32_t renderLayer = 0;
         };
 
         std::vector<Renderable> renderables;
 
-        scene->each<TransformComponent, MeshRendererComponent>(
-            [&](Object object, const TransformComponent&, const MeshRendererComponent& rendererComponent) {
+        scene->each<TransformComponent, MeshGeometry, MeshRendererComponent>(
+            [&](Object object, const TransformComponent&, const MeshGeometry& geometry, const MeshRendererComponent& rendererComponent) {
                 if (!rendererComponent.visible)
                 {
                     return;
                 }
 
-                const Mesh* mesh = meshFor(rendererComponent.primitive);
+                const Mesh* mesh = meshFor(geometry.primitive);
                 if (mesh == nullptr)
                 {
                     return;
                 }
 
-                renderables.push_back({object, mesh, rendererComponent.castShadows});
+                renderables.push_back({
+                    object,
+                    mesh,
+                    rendererComponent.castShadows,
+                    rendererComponent.receiveShadows,
+                    rendererComponent.sortingOrder,
+                    rendererComponent.renderLayer
+                });
+            });
+
+        // Sort renderables by sorting order and render layer
+        std::sort(renderables.begin(), renderables.end(),
+            [](const Renderable& a, const Renderable& b) {
+                if (a.renderLayer != b.renderLayer)
+                    return a.renderLayer < b.renderLayer;
+                return a.sortingOrder < b.sortingOrder;
             });
 
         for (const Renderable& renderable : renderables)
@@ -445,11 +464,12 @@ namespace OctalEngine
             const Mat4 projection = shadowProjectionMatrix(shadowDirection, -0.96f);
             const RenderColor shadowColor{0.03f, 0.03f, 0.03f, 0.65f};
 
+            // Render shadow geometry from all objects that cast shadows
             for (const Renderable& renderable : renderables)
             {
                 if (!renderable.castShadows)
                 {
-                    continue;
+                    continue; // Skip objects that don't cast shadows
                 }
 
                 internalRenderer->drawMesh(

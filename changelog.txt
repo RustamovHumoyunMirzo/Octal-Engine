@@ -1,10 +1,24 @@
 Octal Engine Changelog
 
-Current version: 0.1.0-gamma
+Current version: 0.2.0
 First version: 0.0.1
+
+0.2.0
+
+# nothing
 
 0.1.0-gamma
 
+- Separated MeshGeometry and MeshRendererComponent into independent components.
+  Objects now require both components to be rendered. MeshGeometry defines the
+  primitive type, while MeshRendererComponent controls rendering behavior.
+- Added `bool receiveShadows = true` to MeshRendererComponent for controlling
+  shadow reception on mesh surfaces.
+- Added `int sortingOrder = 0` to MeshRendererComponent for fine-grained
+  depth-sorting within render layers.
+- Improved shadow rendering system to respect both castShadows and receiveShadows
+  flags for more flexible shadow control.
+- Added renderables sorting by renderLayer and sortingOrder for proper draw order.
 - Integrated EnTT into the CMake.
 - Added Scene, SceneManager, and Object APIs backed by per-scene EnTT worlds.
 - Added Engine::scenes() and GameLoop-owned scene management on the main loop.

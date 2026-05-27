@@ -19,7 +19,6 @@ public:
 private:
     void onLoad() override
     {
-        printf("version 02");
         // Setup camera
         OctalEngine::Object camera = createObject("Camera");
         camera.addComponent<OctalEngine::TransformComponent>()->position = {5.0f, 6.0f, -8.0f};
@@ -32,9 +31,9 @@ private:
         sunTransform->rotation = {0.35f, 0.0f, 0.0f, 0.94f}; // Tilted down light
         auto* light = sun.addComponent<OctalEngine::LightComponent>();
         light->type = OctalEngine::LightType::Directional;
-        light->intensity = 0.0f;
+        light->intensity = 2.5f;
         light->castShadows = true;
-        light->shadowStrength = 0.0f;
+        light->shadowStrength = 1.0f;
 
         // Ground plane - receives shadows but doesn't cast them
         OctalEngine::Object ground = createObject("Ground");
@@ -52,7 +51,7 @@ private:
         // Cube 1 - casts shadows, receives shadows, layer 1
         OctalEngine::Object cube1 = createObject("Cube1");
         auto* cube1Transform = cube1.addComponent<OctalEngine::TransformComponent>();
-        cube1Transform->position = {10.0f, 1.0f, 2.0f};
+        cube1Transform->position = {-2.0f, 1.0f, 2.0f};
         cube1Transform->scale = {0.8f, 0.8f, 0.8f};
         auto* cube1Geometry = cube1.addComponent<OctalEngine::MeshGeometry>();
         cube1Geometry->primitive = OctalEngine::PrimitiveType::Cube;
