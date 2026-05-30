@@ -13,9 +13,11 @@ All public classes are in the `OctalEngine` namespace.
 - [`InputManager`](input.md) - action-based keyboard, mouse, gamepad, and touch input.
 - [`Scene Management`](scene.md) - scenes, objects, ECS components, hierarchy, and scene events.
 - [`JobSystem`](jobs.md) - lightweight thread pool and job dispatch API.
+- [`JobSystem`](jobs.md) - lightweight thread pool and job dispatch API.
 - [`PlatformSystem`](platform-system.md) - platform implementation and window manager.
 - [`Renderer`](renderer.md) - render facade, mesh submission, and headless command execution.
 - [`Window`](window.md) - window control API.
+- [`ResourceManager`](resource-manager.md) - asynchronous runtime asset loading API.
 
 ## Headers
 
@@ -31,6 +33,7 @@ All public classes are in the `OctalEngine` namespace.
 #include "PlatformSystem.h"
 #include "Renderer.h"
 #include "Window.h"
+#include "ResourceManager.h"
 ```
 
 The project exposes renderer and job headers through their own CMake targets.

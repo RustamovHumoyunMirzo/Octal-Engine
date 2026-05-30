@@ -5,7 +5,15 @@ First version: 0.0.1
 
 0.2.0
 
-# nothing
+- Added `ResourceManager`: asynchronous, non-blocking runtime asset
+  loading API using the engine `JobSystem`. Public API includes:
+  - `ResourceManager::Initialize()` / `Shutdown()` to manage the loader lifecycle.
+  - `ResourceManager::LoadAsset(path, onComplete)` returning an `AssetHandle`
+    immediately and loading data on worker threads.
+  - `ResourceManager::GetAsset(handle|path)` to query asset status and data.
+  - Robust filesystem error handling and callback notifications on load
+    completion. Multiple requests for the same path reuse the same entry and
+    register additional completion callbacks.
 
 0.1.0-gamma
 

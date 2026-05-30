@@ -1,0 +1,342 @@
+# AAA Realistic Shadow System Implementation Specification
+
+## Goal
+
+Implement a physically plausible, production-quality shadow system capable of rendering realistic shadows for outdoor and indoor scenes with quality comparable to modern AAA engines.
+
+---
+
+## Phase 1: Light Classification
+
+For every light source determine:
+
+### Directional Light
+
+* Sunlight
+* Moonlight
+* Large distant sources
+
+Shadow Technique:
+
+* Cascaded Shadow Maps (CSM)
+
+### Spot Light
+
+* Flashlights
+* Lamps
+* Vehicle headlights
+
+Shadow Technique:
+
+* High-resolution shadow map
+
+### Point Light
+
+* Bulbs
+* Candles
+* Explosions
+
+Shadow Technique:
+
+* Cubemap shadow maps
+
+---
+
+## Phase 2: Shadow Data Generation
+
+### Directional Lights
+
+Create 4-8 cascades.
+
+Split camera frustum:
+
+* Near
+* Mid Near
+* Mid Far
+* Far
+
+For each cascade:
+
+1. Compute cascade frustum corners.
+2. Transform corners into light space.
+3. Calculate orthographic projection bounds.
+4. Render depth-only pass.
+
+Store:
+
+* Depth map
+* Cascade distance range
+* Light matrix
+
+Target Resolution:
+
+* Cascade 0: 4096x4096
+* Cascade 1: 4096x4096
+* Cascade 2: 2048x2048
+* Cascade 3: 2048x2048
+
+---
+
+## Phase 3: Physically Based Shadow Bias
+
+Avoid constant bias.
+
+Calculate bias using:
+
+* Surface slope
+* Receiver angle
+* Light angle
+* Depth gradient
+
+Requirements:
+
+* Eliminate shadow acne
+* Eliminate peter-panning
+* Stable under camera movement
+
+---
+
+## Phase 4: Contact Hardening Shadows
+
+Implement Percentage Closer Soft Shadows (PCSS).
+
+### Step 1
+
+Search for blockers between:
+
+Light → Receiver
+
+### Step 2
+
+Estimate penumbra size:
+
+Penumbra Size ∝
+Receiver Distance − Blocker Distance
+
+### Step 3
+
+Increase filter radius according to penumbra size.
+
+Result:
+
+* Sharp shadows near contact points
+* Soft shadows farther away
+
+This mimics real-world area lights.
+
+---
+
+## Phase 5: Temporal Stability
+
+Prevent shimmering.
+
+Requirements:
+
+### Texel Snapping
+
+Snap cascade projections to shadow texel size.
+
+### Stable Cascades
+
+Prevent projection movement from small camera changes.
+
+### Temporal Filtering
+
+Blend previous frame shadows.
+
+Use:
+
+* Motion vectors
+* History rejection
+* Variance clipping
+
+---
+
+## Phase 6: Area Light Shadows
+
+Support:
+
+* Rectangle lights
+* Disc lights
+* Tube lights
+
+Technique:
+
+* Ray traced shadows
+  or
+* Signed Distance Field shadows
+
+Requirements:
+
+* Soft penumbra
+* Variable softness
+* Accurate occlusion
+
+---
+
+## Phase 7: Shadow Denoising
+
+For ray traced shadows:
+
+1. Spatial filter
+2. Bilateral filter
+3. Temporal accumulation
+4. Variance-guided denoiser
+
+Preserve:
+
+* Contact edges
+* Fine geometry
+* Small details
+
+---
+
+## Phase 8: Geometry Contribution
+
+All geometry categories must participate.
+
+### Static Meshes
+
+Cast + receive shadows
+
+### Skeletal Meshes
+
+Cast + receive shadows
+
+### Foliage
+
+Cast + receive shadows
+
+### Hair
+
+Cast + receive shadows
+
+### Particles
+
+Optional shadow contribution
+
+### Transparent Objects
+
+Support:
+
+* Alpha-tested shadows
+* Dithered transparency shadows
+
+---
+
+## Phase 9: Indirect Shadowing
+
+Implement ambient occlusion systems.
+
+Combine:
+
+* GTAO
+* HBAO
+* Ray Traced AO
+
+Purpose:
+
+Simulate indirect light blockage not captured by direct shadow maps.
+
+---
+
+## Phase 10: Volumetric Shadows
+
+Render shadows inside:
+
+* Fog
+* Dust
+* Smoke
+* Atmosphere
+
+Technique:
+
+1. Volumetric lighting pass
+2. Light-space shadow sampling
+3. Temporal reprojection
+
+Result:
+
+Visible light shafts and god rays.
+
+---
+
+## Phase 11: Hybrid Ray Traced Shadows
+
+For high-end hardware:
+
+### Near Range
+
+Ray traced shadows
+
+### Medium Range
+
+PCSS shadows
+
+### Far Range
+
+Cascaded shadow maps
+
+Hybrid approach provides:
+
+* Sharp contact shadows
+* Realistic penumbra
+* Good performance
+
+---
+
+## Phase 12: Physics-Based Light Behavior
+
+Shadow softness depends on:
+
+* Light source size
+* Occluder distance
+* Receiver distance
+
+Never use arbitrary blur values.
+
+Compute penumbra from geometric relationships:
+
+Penumbra Width =
+Light Radius ×
+(Receiver Distance − Occluder Distance)
+/
+Occluder Distance
+
+This produces physically plausible shadow growth.
+
+---
+
+## Quality Targets
+
+### Ultra
+
+* 8 cascades
+* PCSS
+* Volumetric shadows
+* Ray traced contact shadows
+* Temporal denoising
+
+### High
+
+* 4 cascades
+* PCSS
+* Volumetric shadows
+
+### Medium
+
+* 4 cascades
+* PCF filtering
+
+### Low
+
+* Single shadow map
+* Basic PCF
+
+Expected Result:
+
+* Stable shadows
+* Soft physically accurate penumbra
+* Realistic contact shadows
+* Outdoor and indoor support
+* Modern AAA visual quality

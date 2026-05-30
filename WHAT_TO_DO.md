@@ -64,6 +64,8 @@
 2. Texture loading and management
 3. Material asset format and loading
 
+-- Progress: Added basic `ResourceManager` for raw file loading (non-blocking).
+
 ### Testing & Validation
 1. Create comprehensive rendering test scenes
 2. Performance profiling and optimization
