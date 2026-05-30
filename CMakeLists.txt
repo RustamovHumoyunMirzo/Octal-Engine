@@ -52,6 +52,11 @@ target_include_directories(OctalEngine PUBLIC
     $<INSTALL_INTERFACE:include/OctalEngine/third_party/entt>
 )
 
+target_include_directories(OctalEngine PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/third_party/tinygltf>
+    $<INSTALL_INTERFACE:include/OctalEngine/third_party/tinygltf>
+)
+
 # -----------------------------
 # Jobs
 # -----------------------------
@@ -186,6 +191,13 @@ install(DIRECTORY engine/core/
 install(DIRECTORY third_party/entt/
     DESTINATION include/OctalEngine/third_party/entt
     FILES_MATCHING PATTERN "*.hpp"
+)
+
+install(DIRECTORY third_party/tinygltf/
+    DESTINATION include/OctalEngine/third_party/tinygltf
+    FILES_MATCHING
+        PATTERN "*.h"
+        PATTERN "*.hpp"
 )
 
 install(DIRECTORY engine/input/
