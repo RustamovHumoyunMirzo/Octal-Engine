@@ -1,16 +1,12 @@
-/* Main Loop */
-
-#include "Engine.h"
-#include "EngineTime.h"
-#include "Platform.h"
-#include "Renderer.h"
 #include "SceneRenderer.h"
+#include "Scene.h"
+#include "Renderer.h"
+#include "RendererMath.h"
+#include "Mesh.h"
 
 #include <algorithm>
-#include <array>
-#include <cmath>
-#include <cstdint>
 #include <vector>
+#include <cmath>
 
 namespace OctalEngine
 {
@@ -217,166 +213,121 @@ namespace OctalEngine
         }
     }
 
-    Engine::Engine() {}
-
-    Engine::Engine(const EngineConfig& config)
-        : config(config)
+    void SceneRenderer::render(Scene* scene, Renderer* internalRenderer)
     {
-    }
-
-    Engine::Engine(Platform& platform, const EngineConfig& config)
-        : config(config), platform(&platform)
-    {
-    }
-
-    Engine::~Engine() {}
-
-    void Engine::run()
-    {
-        Time time;
-
-        while (running)
+        if (scene == nullptr || internalRenderer == nullptr)
         {
-            pumpPlatform();
+            return;
+        }
 
-            if (!canRunFrame())
+        internalRenderer->beginFrame();
+
+        Object cameraObject = scene->primaryCamera();
+        if (cameraObject.valid())
+        {
+            const auto* camera = cameraObject.getComponent<CameraComponent>();
+            if (camera != nullptr)
             {
-                stop();
-                break;
+                const TransformComponent cameraTransform = cameraObject.worldTransform();
+                const Vec3 forward = cameraObject.forward();
+                internalRenderer->setCamera({
+                    cameraTransform.position.x,
+                    cameraTransform.position.y,
+                    cameraTransform.position.z,
+                    cameraTransform.position.x - forward.x,
+                    cameraTransform.position.y - forward.y,
+                    cameraTransform.position.z - forward.z,
+                    0.0f,
+                    1.0f,
+                    0.0f,
+                    camera->fov,
+                    camera->nearPlane,
+                    camera->farPlane,
+                    camera->isOrthographic});
             }
-
-            const float dt = time.step();
-
-            initializeRendererIfNeeded();
-            eventWorld.engine().emit<Update>({dt});
-            gameLoop.update(eventWorld, dt);
-            renderScene();
-            eventWorld.flush();
-        }
-    }
-
-    void Engine::stop()
-    {
-        running = false;
-    }
-
-    EventWorld& Engine::events()
-    {
-        return eventWorld;
-    }
-
-    SceneManager& Engine::scenes()
-    {
-        return gameLoop.scenes();
-    }
-
-    const SceneManager& Engine::scenes() const
-    {
-        return gameLoop.scenes();
-    }
-
-    Renderer* Engine::renderer()
-    {
-        return internalRenderer.get();
-    }
-
-    const Renderer* Engine::renderer() const
-    {
-        return internalRenderer.get();
-    }
-
-    void Engine::resizeRenderer(int width, int height)
-    {
-        rendererWidth = width;
-        rendererHeight = height;
-
-        if (internalRenderer != nullptr)
-        {
-            internalRenderer->resize(width, height);
-        }
-    }
-
-    bool Engine::isWindowed() const
-    {
-        return std::holds_alternative<WindowedMode>(config.mode);
-    }
-
-    bool Engine::canRunFrame() const
-    {
-        if (platform != nullptr && platform->shouldQuit())
-        {
-            return false;
         }
 
-        if (!isWindowed())
+        bool hasShadowLight = false;
+        Vec3 shadowDirection{0.35f, -1.0f, 0.35f};
+
+        scene->each<TransformComponent, LightComponent>(
+            [&](Object lightObject, const TransformComponent&, const LightComponent& light) {
+                if (hasShadowLight || light.type != LightType::Directional || !light.castShadows)
+                {
+                    return;
+                }
+
+                const Vec3 forward = lightObject.forward();
+                shadowDirection = normalize({-forward.x, -std::abs(forward.y) - 0.25f, -forward.z});
+                hasShadowLight = true;
+            });
+
+        struct Renderable
         {
-            return true;
+            Object object;
+            const Mesh* mesh = nullptr;
+            bool castShadows = false;
+            bool receiveShadows = true;
+            int sortingOrder = 0;
+            uint32_t renderLayer = 0;
+        };
+
+        std::vector<Renderable> renderables;
+
+        scene->each<TransformComponent, MeshGeometry, MeshRendererComponent>(
+            [&](Object object, const TransformComponent&, const MeshGeometry& geometry, const MeshRendererComponent& rendererComponent) {
+                if (!rendererComponent.visible)
+                {
+                    return;
+                }
+
+                const Mesh* mesh = meshFor(geometry.primitive);
+                if (mesh == nullptr)
+                {
+                    return;
+                }
+
+                renderables.push_back({
+                    object,
+                    mesh,
+                    rendererComponent.castShadows,
+                    rendererComponent.receiveShadows,
+                    rendererComponent.sortingOrder,
+                    rendererComponent.renderLayer
+                });
+            });
+
+        std::sort(renderables.begin(), renderables.end(),
+            [](const Renderable& a, const Renderable& b) {
+                if (a.renderLayer != b.renderLayer)
+                    return a.renderLayer < b.renderLayer;
+                return a.sortingOrder < b.sortingOrder;
+            });
+
+        for (const Renderable& renderable : renderables)
+        {
+            internalRenderer->drawMesh(*renderable.mesh, transformMatrix(renderable.object.worldTransform()));
         }
 
-        const auto& mode = std::get<WindowedMode>(config.mode);
-        return mode.window != nullptr;
-    }
-
-    void Engine::pumpPlatform()
-    {
-        if (platform != nullptr)
+        if (hasShadowLight)
         {
-            platform->pumpEvents();
-        }
-    }
+            const Mat4 projection = shadowProjectionMatrix(shadowDirection, -0.96f);
+            const RenderColor shadowColor{0.03f, 0.03f, 0.03f, 0.65f};
 
-    void Engine::initializeRendererIfNeeded()
-    {
-        if (!config.renderScenes || internalRenderer != nullptr)
-        {
-            return;
-        }
-
-        RendererInitSettings settings;
-        settings.headless = !isWindowed();
-
-        if (isWindowed())
-        {
-            const auto& mode = std::get<WindowedMode>(config.mode);
-            if (mode.window == nullptr || mode.nativeWindowHandle == nullptr)
+            for (const Renderable& renderable : renderables)
             {
-                return;
+                if (!renderable.castShadows)
+                {
+                    continue;
+                }
+
+                internalRenderer->drawMesh(
+                    *renderable.mesh,
+                    multiply(projection, transformMatrix(renderable.object.worldTransform())),
+                    shadowColor);
             }
-
-            settings.nativeWindowHandle = mode.nativeWindowHandle;
-            settings.width = mode.width;
-            settings.height = mode.height;
-            rendererWidth = mode.width;
-            rendererHeight = mode.height;
         }
 
-        auto renderer = std::make_unique<Renderer>(settings);
-        if (renderer->isInitialized())
-        {
-            internalRenderer = std::move(renderer);
-            // create scene renderer to delegate scene rendering responsibilities
-            sceneRenderer = std::make_unique<SceneRenderer>();
-        }
-    }
-
-    void Engine::renderScene()
-    {
-        if (!config.renderScenes || internalRenderer == nullptr)
-        {
-            return;
-        }
-
-        Scene* scene = gameLoop.scenes().currentScene();
-        if (scene == nullptr)
-        {
-            return;
-        }
-
-        if (sceneRenderer == nullptr)
-        {
-            sceneRenderer = std::make_unique<SceneRenderer>();
-        }
-
-        sceneRenderer->render(scene, internalRenderer.get());
+        internalRenderer->endFrame();
     }
 }

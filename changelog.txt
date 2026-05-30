@@ -14,6 +14,8 @@ First version: 0.0.1
   - Robust filesystem error handling and callback notifications on load
     completion. Multiple requests for the same path reuse the same entry and
     register additional completion callbacks.
+- Splitted scene rendering from the engine core into a new `SceneRenderer` class that
+  handles all rendering logic and interacts with the `Renderer` backend.
 
 0.1.0-gamma
 

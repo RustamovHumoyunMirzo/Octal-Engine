@@ -10,6 +10,7 @@ namespace OctalEngine
 {
     class Platform;
     class Renderer;
+    class SceneRenderer;
     class Window;
 
     struct HeadlessMode
@@ -62,6 +63,7 @@ namespace OctalEngine
         GameLoop gameLoop;
         Platform* platform = nullptr;
         std::unique_ptr<Renderer> internalRenderer;
+        std::unique_ptr<SceneRenderer> sceneRenderer;
         int rendererWidth = 0;
         int rendererHeight = 0;
     };

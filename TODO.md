@@ -5,18 +5,7 @@
 2. Write priority levels for in-progress items (High, Medium, Low) and sort them by priority.
 3. For in-progress items, write clear next steps or sub-tasks to complete them.
 
-## Recently Completed
-- Separated MeshGeometry and MeshRendererComponent into independent components
-- Added `receiveShadows` flag to MeshRendererComponent (not working)
-- Added `sortingOrder` for depth-sorting within render layers
-- Implemented renderables sorting by renderLayer and sortingOrder
-- Updated documentation and changelog
-
 ## In Progress / Next Steps
-
-### Splitting Scene Rendering from Engine Core
-1. **Refactor Engine to delegate scene rendering to a new SceneRenderer class**
-2. **Keep Engine clean and focused on core systems and game loop**
 
 ### Rendering System (Priority: High)
 1. **Dynamic Lighting System**
