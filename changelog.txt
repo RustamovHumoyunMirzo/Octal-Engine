@@ -16,6 +16,7 @@ First version: 0.0.1
     register additional completion callbacks.
 - Splitted scene rendering from the engine core into a new `SceneRenderer` class that
   handles all rendering logic and interacts with the `Renderer` backend.
+- Integrated tinygltf into the project.
 
 0.1.0-gamma
 
