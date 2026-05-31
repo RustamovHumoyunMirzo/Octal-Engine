@@ -17,6 +17,8 @@ First version: 0.0.1
 - Splitted scene rendering from the engine core into a new `SceneRenderer` class that
   handles all rendering logic and interacts with the `Renderer` backend.
 - Integrated tinygltf into the project.
+- Added build.py script to automate project setup, including downloading, integrating third-party dependencies and building the project.
+- Added cmd.py helper script for common command-line tasks like building, running and executing scripts.
 
 0.1.0-gamma
 

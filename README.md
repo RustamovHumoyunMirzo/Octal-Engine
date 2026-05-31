@@ -4,6 +4,9 @@ I just wanted to create an easier to use game engine for who want to create game
 
 ## Timeline
 
+### 5/05/2026
+Project started.
+
 ### 26/05/2026
 Basic scene rendering with rotating cube, lighting and shadow. (`examples/cube_controller_game.cpp`)
 
