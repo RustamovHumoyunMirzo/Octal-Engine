@@ -4,12 +4,26 @@ import subprocess
 BASE_DIR = Path(__file__).parent.parent
 
 
-def run_ps1(script_name: str) -> dict:
+def run_ps1(script_name: str, **kwargs) -> dict:
     try:
         script_path = BASE_DIR / script_name
 
+        cmd = [
+            "powershell",
+            "-ExecutionPolicy",
+            "Bypass",
+            "-File",
+            str(script_path),
+        ]
+
+        for key, value in kwargs.items():
+            if value is None:
+                continue
+
+            cmd.extend([f"-{key}", str(value)])
+
         result = subprocess.run(
-            ["powershell", "-ExecutionPolicy", "Bypass", "-File", str(script_path)],
+            cmd,
             capture_output=True,
             text=True,
             check=True,

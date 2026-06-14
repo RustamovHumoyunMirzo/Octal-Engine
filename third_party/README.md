@@ -6,3 +6,4 @@
 - [bgfx, bx, bimg](https://github.com/bkaradzic/bgfx)
 - [EnTT](https://github.com/skypjack/entt)
 - [tinygltf](https://github.com/syoyo/tinygltf)
+- [assimp](https://github.com/assimp/assimp)

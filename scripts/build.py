@@ -19,10 +19,10 @@ def parse_build_type() -> str:
     return build_type
 
 
-def run_step(description: str, script: str):
+def run_step(description: str, script: str, **kwargs):
     print(f"{description}...")
 
-    result = run_ps1(script)
+    result = run_ps1(script, **kwargs)
 
     print(f"End process of {description.lower()}")
 
@@ -51,6 +51,10 @@ def main():
     # tinygltf
     run_step("Getting tinygltf", "get_tinygltf.ps1")
     run_step("Validating tinygltf", "validate_tinygltf.ps1")
+
+    # assimp
+    run_step("Getting assimp", "get_assimp.ps1")
+    run_step("Building assimp", "build_assimp.ps1", Configuration=build_type)
 
     # configure project
     print(f"Configuring project ({build_type})...")

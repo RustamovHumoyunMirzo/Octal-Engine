@@ -19,6 +19,8 @@ First version: 0.0.1
 - Integrated tinygltf into the project.
 - Added build.py script to automate project setup, including downloading, integrating third-party dependencies and building the project.
 - Added cmd.py helper script for common command-line tasks like building, running and executing scripts.
+- Added new third party library with get and build scripts: Assimp
+- Added assimp integrations with CMake
 
 0.1.0-gamma
 

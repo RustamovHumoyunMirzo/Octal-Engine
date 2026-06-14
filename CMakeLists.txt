@@ -73,6 +73,25 @@ target_include_directories(OctalEngineJobs PUBLIC
 )
 
 # -----------------------------
+# Assimp
+# -----------------------------
+add_library(assimp STATIC IMPORTED GLOBAL)
+
+set_target_properties(assimp PROPERTIES
+    IMPORTED_LOCATION_DEBUG
+        "${CMAKE_SOURCE_DIR}/third_party/assimp/build/lib/Debug/assimp-vc145-mtd.lib"
+
+    IMPORTED_LOCATION_RELEASE
+        "${CMAKE_SOURCE_DIR}/third_party/assimp/build/lib/Release/assimp-vc145-mt.lib"
+
+    INTERFACE_INCLUDE_DIRECTORIES
+        "${CMAKE_SOURCE_DIR}/third_party/assimp/include"
+
+    MAP_IMPORTED_CONFIG_RELWITHDEBINFO Release
+    MAP_IMPORTED_CONFIG_MINSIZEREL Release
+)
+
+# -----------------------------
 # Renderer
 # -----------------------------
 file(GLOB_RECURSE ENGINE_RENDERER_SRC
@@ -93,6 +112,7 @@ target_link_libraries(OctalEngineRenderer
         bgfx::bx
         bgfx::bimg
         bgfx::bimg_decode
+        assimp
 )
 
 target_compile_definitions(OctalEngineRenderer PRIVATE
